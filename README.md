@@ -6,6 +6,15 @@
 
 :clap: Special thanks to [Segun Adebayo](https://twitter.com/thesegunadebayo) for creating the [Chakra UI theme](https://github.com/chakra-ui/frontity-chakra-ui-theme) of which this is based off of.
 
+## Home Page
+![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+
+## Category
+![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+
+## About Page
+![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+
 # Installation :wrench:
 
 ## 1. For new projects: clone this project.
@@ -97,7 +106,7 @@
 
 ## Credits :white_flower:
 
-- Build with love :blue_heart:, using [Frontity's](https://frontity.org) [mars-theme](https://www.npmjs.com/package/@frontity/mars-theme) as base.
+- Build with love :blue_heart:, using [Frontity's](https://frontity.org) [frontity-chakra-theme](https://www.npmjs.com/package/frontity-chakra-theme) as base.
 
 ## Authors
 
