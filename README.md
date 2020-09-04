@@ -7,13 +7,13 @@
 :clap: Special thanks to [Segun Adebayo](https://twitter.com/thesegunadebayo) for creating the [Chakra UI theme](https://github.com/chakra-ui/frontity-chakra-ui-theme) of which this is based off of.
 
 ## Home Page
-![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+![Homepage of the Copacetic Theme](https://github.com/taylorchasewhite/copacetic-frontity/blob/master/readme/2020-09-04%20-%20Frontity%20Site.png)
 
 ## Category
-![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+![Category page of the Copacetic Theme](https://github.com/taylorchasewhite/copacetic-frontity/blob/master/readme/2020-09-04%20-%20Frontity%20Site%20-%20Category%20-%20Nature.png)
 
 ## About Page
-![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+![Random authored page of the Copacetic Theme](https://github.com/taylorchasewhite/copacetic-frontity/blob/master/readme/2020-09-04%20-%20Frontity%20Site%20-%20About.png?raw=true)
 
 # Installation :wrench:
 
