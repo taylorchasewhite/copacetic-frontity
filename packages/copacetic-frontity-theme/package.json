@@ -1,13 +1,13 @@
 {
   "name": "@taylorwhite/copacetic-frontity-theme",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A pretty copacetic theme for Frontity",
   "author": {
     "name": "Taylor White",
     "email": "whitetc2@gmail.com"
   },
   "bugs": {
-    "url": "https://github.com/taylorchasewhite/copacetic-frontity-theme/issues"
+    "url": "https://github.com/taylorchasewhite/copacetic-frontity/issues"
   },
   "bundleDependencies": false,
   "dependencies": {
@@ -21,7 +21,7 @@
   },
   "deprecated": false,
   "description": "A frontity theme made with Chakra UI",
-  "homepage": "https://github.com/taylorchasewhite/copacetic-frontity-theme#readme",
+  "homepage": "https://github.com/taylorchasewhite/copacetic-frontity#readme",
   "keywords": [
     "wordpress",
     "frontity",
@@ -33,6 +33,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/taylorchasewhite/copacetic-frontity-theme.git"
+    "url": "git+https://github.com/taylorchasewhite/copacetic-frontity.git"
   }
 }
