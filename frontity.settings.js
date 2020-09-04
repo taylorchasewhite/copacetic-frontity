@@ -9,11 +9,11 @@ const settings = {
   },
 "packages": [
 	{
-		name: "copacetic-frontity-theme",
+		name: "@taylorwhite/copacetic-frontity-theme",
 		state: {
 			theme: {
 				// The logo can be a text or an image url
-				logo: "TaylorChaseWhite",
+				logo: "Test Frontity Blog",
 				// show background pattern
 				showBackgroundPattern: true,
 				// show social links

@@ -18,7 +18,7 @@
     "@frontity/mars-theme": "./packages/mars-theme",
     "@frontity/tiny-router": "^1.2.1",
     "@frontity/wp-source": "^1.8.1",
-    "copacetic-frontity-theme": "file:packages/copacetic-frontity-theme",
+    "@taylorwhite/copacetic-frontity-theme": "file:packages/copacetic-frontity-theme",
     "frontity": "^1.10.1"
   }
 }

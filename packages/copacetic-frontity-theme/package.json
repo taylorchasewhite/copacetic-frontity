@@ -1,7 +1,7 @@
 {
-  "name": "@frontity/copacetic-frontity-theme",
-  "version": "1.0",
-  "description": "A starter theme for Frontity",
+  "name": "@taylorwhite/copacetic-frontity-theme",
+  "version": "1.0.0",
+  "description": "A pretty copacetic theme for Frontity",
   "author": {
     "name": "Taylor White",
     "email": "whitetc2@gmail.com"
@@ -28,13 +28,11 @@
     "frontity-theme"
   ],
   "license": "MIT",
-  "name": "frontity-chakra-theme",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/taylorchasewhite/copacetic-frontity-theme.git"
-  },
-  "version": "0.0.2"
+  }
 }
