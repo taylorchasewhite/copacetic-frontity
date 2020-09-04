@@ -1,0 +1,5 @@
+node_modules
+build
+packages/mars-theme
+packages/twentynineteen-theme
+packages/twentytwenty-theme
