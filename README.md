@@ -24,13 +24,13 @@
 
 ## 2. For new/existing project: use npm.
 
-1. `npm install @taylorwhite/copacetic-frontity`.
+1. `npm install @taylorwhite/copacetic-frontity-theme`.
 2. Add the package in `frontity-settings.js`.
 
 ```javascript
   packages: [
     {
-      name: "@taylorwhite/copacetic-frontity",
+      name: "@taylorwhite/copacetic-frontity-theme",
       state: {
        theme: {
         logo: "Test Frontity Blog",  // The logo can be a text or an image url
