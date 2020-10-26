@@ -3,6 +3,7 @@ import React from "react";
 import Link from "../link";
 import PostCategories from "./post-categories";
 import { formatDate } from "../helpers";
+import { decode } from "frontity";
 
 const PostHeader = ({
   heading,
