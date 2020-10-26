@@ -1,38 +1,37 @@
 {
-  "name": "@taylorwhite/copacetic-frontity-theme",
-  "version": "1.0.6",
-  "description": "A pretty copacetic theme for Frontity",
-  "author": {
-    "name": "Taylor White",
-    "email": "whitetc2@gmail.com"
-  },
-  "bugs": {
-    "url": "https://github.com/taylorchasewhite/copacetic-frontity/issues"
-  },
-  "bundleDependencies": false,
-  "dependencies": {
-    "@chakra-ui/core": "0.8.0",
-    "@frontity/components": "^1.5.1",
-    "@frontity/hooks": "2.0.2",
-    "@frontity/html2react": "^1.4.0",
-    "emotion-theming": "10.0.27",
-    "frontity": "^1.12.0",
-    "react-icons": "3.11.0"
-  },
-  "deprecated": false,
-  "description": "A frontity theme made with Chakra UI",
-  "homepage": "https://github.com/taylorchasewhite/copacetic-frontity#readme",
-  "keywords": [
-    "wordpress",
-    "frontity",
-    "frontity-theme"
-  ],
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/taylorchasewhite/copacetic-frontity.git"
-  }
+	"author": {
+		"name": "Taylor White",
+		"email": "whitetc2@gmail.com"
+	},
+	"bugs": {
+		"url": "https://github.com/taylorchasewhite/copacetic-frontity/issues"
+	},
+	"bundleDependencies": false,
+	"dependencies": {
+		"@chakra-ui/core": "0.8.0",
+		"@frontity/components": "^1.5.1",
+		"@frontity/hooks": "2.0.2",
+		"@frontity/html2react": "^1.4.0",
+		"emotion-theming": "10.0.27",
+		"frontity": "^1.12.0",
+		"react-icons": "3.11.0"
+	},
+	"deprecated": false,
+	"description": "A pretty copacetic theme for Frontity",
+	"homepage": "https://github.com/taylorchasewhite/copacetic-frontity#readme",
+	"keywords": [
+		"wordpress",
+		"frontity",
+		"frontity-theme"
+	],
+	"license": "MIT",
+	"name": "@taylorwhite/copacetic-frontity-theme",
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/taylorchasewhite/copacetic-frontity.git"
+	},
+	"version": "1.0.6"
 }
