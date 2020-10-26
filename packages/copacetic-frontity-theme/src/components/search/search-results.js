@@ -1,5 +1,5 @@
 import { Box, Button, Heading, Input, Text, Stack } from "@chakra-ui/core";
-import { connect } from "frontity";
+import { connect, decode } from "frontity";
 import React from "react";
 import Archive from "../archive";
 import { PatternBox, PatternBoxInner } from "../newsletter";
@@ -13,7 +13,7 @@ const SearchHeader = ({ label, title, ...props }) => (
       fontWeight="medium"
       color="accent.400"
     >
-      {label}
+      {decode(label)}
     </Heading>
 
     <Heading
@@ -23,7 +23,7 @@ const SearchHeader = ({ label, title, ...props }) => (
       fontSize="3.5rem"
       color="white"
     >
-      {title}
+      {decode(title)}
     </Heading>
   </Box>
 );

@@ -26,7 +26,7 @@ const PostHeader = ({
       size="2xl"
       mt="30px"
       mb={{ base: "20px", lg: "32px" }}
-      dangerouslySetInnerHTML={{ __html: heading }}
+      dangerouslySetInnerHTML={{ __html: decode(heading) }}
     />
     {description && <Text mt={4}>{description}</Text>}
     {/* Don't show the author if we're on a page type */}

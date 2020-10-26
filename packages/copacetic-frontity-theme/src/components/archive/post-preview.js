@@ -3,6 +3,7 @@ import React from "react";
 import { PostImageWithOverlay } from "../featured-post/components";
 import Link from "../link";
 import PostCategories from "../post/post-categories";
+import { decode } from "frontity";
 
 const PostPreview = ({ data, ...rest }) => {
   const { title, excerpt, featured_media, link, categories } = data;
@@ -25,7 +26,7 @@ const PostPreview = ({ data, ...rest }) => {
 
       <Flex p="40px" flexGrow="1" direction="column">
         <Heading fontSize="2xl" as="h4">
-          <Link link={link}>{title}</Link>
+          <Link link={link}>{decode(title)}</Link>
         </Heading>
         <Box
           my="20px"

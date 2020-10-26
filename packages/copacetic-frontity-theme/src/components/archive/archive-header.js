@@ -1,5 +1,6 @@
 import { Heading, Text } from "@chakra-ui/core";
 import React from "react";
+import { decode } from "frontity";
 import { PatternBox, PatternBoxInner } from "../styles/pattern-box";
 
 const ArchiveHeader = ({ taxonomy, title, ...props }) => (
@@ -13,7 +14,7 @@ const ArchiveHeader = ({ taxonomy, title, ...props }) => (
         fontSize={{ base: "5xl", md: "6xl" }}
         color="accent.400"
       >
-        {title}
+        {decode(title)}
       </Heading>
     </PatternBoxInner>
   </PatternBox>
