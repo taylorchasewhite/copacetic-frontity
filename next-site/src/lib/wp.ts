@@ -41,6 +41,17 @@ async function wpFetch<T>(
     );
   }
 
+  // Some hosting providers (caching layers, WAFs, maintenance pages) reply
+  // with HTML even on a 200 — guard so the JSON parser doesn't blow up the
+  // entire prerender with an opaque "Unexpected token <" error.
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    const preview = (await res.text()).slice(0, 120).replace(/\s+/g, " ");
+    throw new Error(
+      `WP returned non-JSON (${contentType || "no content-type"}) for ${url.toString()} :: ${preview}`
+    );
+  }
+
   const data = (await res.json()) as T;
   return { data, headers: res.headers };
 }
