@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* TODO: import the Kelson font files once we copy them over from the
+   Frontity theme. For now we fall back to system-ui via Tailwind. */
+
+html,
+body {
+  @apply bg-canvas text-primary-900 font-body antialiased;
+}
+
+/* Style the WP-rendered HTML inside posts via @tailwindcss/typography. */
+.prose :where(a):not(:where([class~="not-prose"] *)) {
+  @apply text-accent-500 no-underline hover:underline;
+}
