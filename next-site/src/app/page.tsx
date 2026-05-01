@@ -3,10 +3,17 @@ import { ArchiveView } from "@/components/archive-view";
 import { HomeHero } from "@/components/home-hero";
 import { quoteForSeed } from "@/lib/quotes";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const result = await getPosts({ perPage: 12 });
+  let result;
+  try {
+    result = await getPosts({ perPage: 12 });
+  } catch (err) {
+    console.warn("HomePage: failed to fetch posts:", err);
+    result = { items: [], totalPages: 1, total: 0, page: 1, perPage: 12 };
+  }
 
   // Stable per-day seed so the SSR'd quote only rotates daily.
   const dayOfYear = Math.floor(
