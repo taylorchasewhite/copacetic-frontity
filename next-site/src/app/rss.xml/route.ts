@@ -3,7 +3,9 @@ import { siteConfig } from "@/lib/site";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://taylorchasewhite.com";
 
-// Cache for an hour, regenerate in the background.
+// Generate on-demand and cache for an hour. Avoids failing the build when
+// the upstream WordPress install is temporarily flaky.
+export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 function escapeXml(s: string): string {

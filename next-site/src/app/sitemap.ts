@@ -3,6 +3,11 @@ import { getPosts } from "@/lib/wp";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://taylorchasewhite.com";
 
+// Generate on-demand instead of at build time so a flaky WordPress
+// response can't fail the entire deploy.
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
 // Pull every post for the sitemap. Caps at 100 per WP request, so we
 // page through. Failures are swallowed: a flaky WP response shouldn't
 // fail the whole production build — we'd rather ship a partial sitemap.
