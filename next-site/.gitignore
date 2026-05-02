@@ -6,3 +6,7 @@ out
 .vercel
 *.log
 .DS_Store
+
+# scratch debug output
+body.txt
+resp*.txt
