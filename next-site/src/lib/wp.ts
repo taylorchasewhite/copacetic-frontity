@@ -28,7 +28,15 @@ async function wpFetch<T>(
     url.searchParams.set(k, String(v));
   }
 
+  // The upstream WP install is currently injecting an HTML redirect when
+  // the User-Agent contains "Vercel". Spoof a normal browser UA until the
+  // WP host is cleaned up.
   const res = await fetch(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      Accept: "application/json",
+    },
     next: {
       revalidate: opts.revalidate ?? DEFAULT_REVALIDATE,
       tags: opts.tags,
