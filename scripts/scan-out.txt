@@ -1,0 +1,238 @@
+==========================================
+1. Suspect options
+==========================================
+
+==========================================
+2. Options whose VALUE contains malware fingerprints
+==========================================
+
+==========================================
+3. Large autoloaded options (top 25)
+==========================================
+option_name	len	autoload
+jetpack_file_data	60837	yes
+jetpack_active_plan	15519	yes
+rewrite_rules	8494	yes
+jetpack_options	6158	yes
+wp_user_roles	4046	yes
+ngg_options	3712	yes
+youtubeprefs_alloptions	2960	yes
+bib_meta_keys	2867	yes
+youtubeprefs_alloptions_backup_11_5	1784	yes
+youtubeprefs_alloptions_backup_11_8_1	1680	yes
+youtubeprefs_alloptions_backup_11_8_2	1680	yes
+youtubeprefs_alloptions_backup_11_8_3	1680	yes
+tc_theme_options	1621	yes
+sm_options	1578	yes
+oa_social_login_settings	1544	yes
+user_hit_count	1443	yes
+toc-options	1422	yes
+jetpack_available_modules	1287	yes
+widget_rss_multi_importer_widget	1117	yes
+widget_aboutme_widget	1028	yes
+vFlex	952	yes
+ig_es_update_processed_tasks	947	yes
+bib_html	829	yes
+jetpack_constants_sync_checksum	731	yes
+jetpack_plugin_api_action_links	678	yes
+
+==========================================
+4. Posts/postmeta with fingerprints
+==========================================
+
+==========================================
+5. usermeta with fingerprints
+==========================================
+
+==========================================
+6. Cron events
+==========================================
+hook	next_run_gmt	next_run_relative	recurrence
+jetpack_clean_nonces	2026-05-03 16:36:19	8 minutes 45 seconds	1 hour
+wp_privacy_delete_old_export_files	2026-05-03 17:20:40	53 minutes 6 seconds	1 hour
+jetpack_stats_transient_cleanup	2026-05-03 20:36:19	4 hours 8 minutes	8 hours
+jetpack_v2_heartbeat	2026-05-03 23:03:18	6 hours 35 minutes	1 day
+delete_expired_transients	2026-05-04 03:42:02	11 hours 14 minutes	1 day
+wp_version_check	2026-05-04 03:48:57	11 hours 21 minutes	12 hours
+wp_update_plugins	2026-05-04 03:48:57	11 hours 21 minutes	12 hours
+wp_update_themes	2026-05-04 03:48:57	11 hours 21 minutes	12 hours
+wp_scheduled_delete	2026-05-04 03:49:04	11 hours 21 minutes	1 day
+wp_scheduled_auto_draft_delete	2026-05-04 03:49:59	11 hours 22 minutes	1 day
+wp_update_user_counts	2026-05-04 03:50:16	11 hours 22 minutes	12 hours
+recovery_mode_clean_expired_keys	2026-05-04 04:29:16	12 hours 1 minute	1 day
+jp_purge_transients_cron	2026-05-04 06:46:32	14 hours 18 minutes	1 day
+grunion_scheduled_delete	2026-05-04 12:40:40	20 hours 13 minutes	1 day
+mwp_update_public_keys	2026-05-04 13:24:21	20 hours 56 minutes	1 day
+wp_delete_temp_updater_backups	2026-05-05 15:49:01	1 day 23 hours	1 week
+wp_site_health_scheduled_check	2026-05-06 13:08:19	2 days 20 hours	1 week
+
+==========================================
+7. Active plugins + must-use + drop-ins
+==========================================
+name	status	update	version
+jetpack	active	none	15.7.1
+sso	must-use	none	0.5
+install.php	dropin	none	
+--- mu-plugins ---
+total 24
+drwxr-xr-x  2 taylosj9 taylosj9 4096 Nov 20 21:18 .
+drwxr-xr-x 18 taylosj9 taylosj9 4096 May  3 10:20 ..
+-rw-r--r--  1 taylosj9 taylosj9  279 Nov 20 21:18 error_log
+-rw-r--r--  1 taylosj9 taylosj9 3159 Oct 13  2025 sso.php
+--- drop-ins ---
+--- root-level non-core PHP ---
+-rw-r--r-- 1 taylosj9 taylosj9   351 Jun  9  2022 500.php
+-rw-r--r-- 1 taylosj9 taylosj9  3769 Feb 15  2015 backup-1424038016-wp-config.php
+-rw-r--r-- 1 taylosj9 taylosj9   761 Jul 31  2014 hosting_provider_filters.php
+-rw-r--r-- 1 taylosj9 taylosj9   405 Aug  4  2020 index.php
+-rw-r--r-- 1 taylosj9 taylosj9   401 Feb 15  2015 ssv3_directory.php
+-rw-r--r-- 1 taylosj9 taylosj9  7349 Dec  2 22:50 wp-activate.php
+-rw-r--r-- 1 taylosj9 taylosj9   351 Aug  4  2020 wp-blog-header.php
+-rw-r--r-- 1 taylosj9 taylosj9  2323 Aug 24  2023 wp-comments-post.php
+-rw-r--r-- 1 taylosj9 taylosj9  3339 Dec  2 22:50 wp-config-sample.php
+-rw-r--r-- 1 taylosj9 taylosj9  3376 May  3 08:04 wp-config.php
+-rw-r--r-- 1 taylosj9 taylosj9  5617 Dec  5  2024 wp-cron.php
+-rw-r--r-- 1 taylosj9 taylosj9  2493 Dec  2 22:50 wp-links-opml.php
+-rw-r--r-- 1 taylosj9 taylosj9  3937 Dec  5  2024 wp-load.php
+-rw-r--r-- 1 taylosj9 taylosj9 51437 Dec  2 22:50 wp-login.php
+-rw-r--r-- 1 taylosj9 taylosj9  8727 Dec  2 22:50 wp-mail.php
+-rw-r--r-- 1 taylosj9 taylosj9 31055 Dec  2 22:50 wp-settings.php
+-rw-r--r-- 1 taylosj9 taylosj9 34516 Apr 15  2025 wp-signup.php
+-rw-r--r-- 1 taylosj9 taylosj9  5214 Dec  2 22:50 wp-trackback.php
+-rw-r--r-- 1 taylosj9 taylosj9  3205 Apr 15  2025 xmlrpc.php
+
+==========================================
+8. Files containing fingerprints
+==========================================
+
+==========================================
+9. .htaccess at root + wp-content
+==========================================
+--- root .htaccess ---
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+	RewriteEngine On RewriteBase /
+	RewriteRule ^index\.php$ - [L]
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# This domain inherits the “PHP” package.
+# php -- END cPanel-generated handler, do not edit
+--- wp-content/.htaccess ---
+--- wp-content/uploads/.htaccess ---
+
+==========================================
+10. Recently modified files (last 3 days, excluding noisy paths)
+==========================================
+./alpha/.htaccess
+./wp-config.php
+./ourgovcommunity/.htaccess
+./ourgov-beta/.htaccess
+./ourgov-alpha/alpha/.htaccess
+./.htaccess
+./wp-config.php.bak.20260503-071237
+./ourgov/.htaccess
+./wp-content/themes/twentyeleven/images/headers/trolley.jpg
+./wp-content/themes/twentyeleven/images/headers/chessboard-thumbnail.jpg
+./wp-content/themes/twentyeleven/images/headers/wheel.jpg
+./wp-content/themes/twentyeleven/images/headers/lanterns-thumbnail.jpg
+./wp-content/themes/twentyeleven/images/headers/pine-cone.jpg
+./wp-content/themes/twentyeleven/images/headers/willow-thumbnail.jpg
+./wp-content/themes/twentyeleven/images/headers/chessboard.jpg
+./wp-content/themes/twentyeleven/images/headers/willow.jpg
+./wp-content/themes/twentyeleven/images/headers/pine-cone-thumbnail.jpg
+./wp-content/themes/twentyeleven/images/headers/wheel-thumbnail.jpg
+./wp-content/themes/twentyeleven/images/headers/lanterns.jpg
+./wp-content/themes/twentyeleven/images/headers/shore-thumbnail.jpg
+./wp-content/themes/twentyeleven/images/headers/hanoi.jpg
+./wp-content/themes/twentyeleven/images/headers/trolley-thumbnail.jpg
+./wp-content/themes/twentyeleven/images/headers/shore.jpg
+./wp-content/themes/twentyeleven/images/headers/hanoi-thumbnail.jpg
+./wp-content/themes/twentyeleven/images/comment-arrow-dark.png
+./wp-content/themes/twentyeleven/images/search.png
+./wp-content/themes/twentyeleven/images/patterns/pattern-woman.jpg
+./wp-content/themes/twentyeleven/images/patterns/pattern-flower.jpg
+./wp-content/themes/twentyeleven/images/comment-arrow-bypostauthor-dark.png
+./wp-content/themes/twentyeleven/images/comment-arrow.png
+./wp-content/themes/twentyeleven/images/comment-arrow-bypostauthor-dark-rtl.png
+./wp-content/themes/twentyeleven/images/comment-bubble-dark-rtl.png
+./wp-content/themes/twentyeleven/images/comment-bubble-rtl.png
+./wp-content/themes/twentyeleven/images/comment-arrow-dark-rtl.png
+./wp-content/themes/twentyeleven/images/comment-arrow-bypostauthor.png
+./wp-content/themes/twentyeleven/images/comment-bubble.png
+./wp-content/themes/twentyeleven/images/wordpress.png
+./wp-content/themes/twentyeleven/images/comment-arrow-rtl.png
+./wp-content/themes/twentyeleven/images/comment-bubble-dark.png
+./wp-content/themes/twentyeleven/images/comment-arrow-bypostauthor-rtl.png
+./wp-content/themes/twentyeleven/page.php
+./wp-content/themes/twentyeleven/single.php
+./wp-content/themes/twentyeleven/screenshot.png
+./wp-content/themes/twentyeleven/blocks.css
+./wp-content/themes/twentyeleven/license.txt
+./wp-content/themes/twentyeleven/search.php
+./wp-content/themes/twentyeleven/functions.php
+./wp-content/themes/twentyeleven/image.php
+./wp-content/themes/twentyeleven/404.php
+./wp-content/themes/twentyeleven/header.php
+
+==========================================
+11. Live anonymous fetch â€” what do anon visitors see?
+==========================================
+HTTP/2 200 
+x-robots-tag: noindex
+x-content-type-options: nosniff
+access-control-expose-headers: X-WP-Total, X-WP-TotalPages, Link
+access-control-allow-headers: Authorization, X-WP-Nonce, Content-Disposition, Content-MD5, Content-Type
+x-wp-total: 31
+x-wp-totalpages: 31
+link: <https://www.old.taylorchasewhite.com/wp-json/wp/v2/posts?page=2&per_page=1&_embed=1&categories%5B0%5D=14>; rel="next"
+
+==========================================
+12. Check wp-config.php for tampering markers
+==========================================
+
+==========================================
+13. PHP ini overrides (auto_prepend_file etc.)
+==========================================
+--- ./old/php.ini ---
+--- ./php.ini ---
+; cPanel-generated php ini directives, do not edit
+; Manual editing of this file may result in unexpected behavior.
+; To make changes to this file, use the cPanel MultiPHP INI Editor (Home >> Software >> MultiPHP INI Editor)
+; For more information, read our documentation (https://go.cpanel.net/EA4ModifyINI)
+
+allow_url_fopen = On
+display_errors = Off
+enable_dl = Off
+file_uploads = On
+max_execution_time = 300
+max_input_time = 600
+max_input_vars = 10000
+memory_limit = 1024M
+post_max_size = 1024M
+session.gc_maxlifetime = 1440
+session.save_path = "/tmp"
+upload_max_filesize = 1024M
+zlib.output_compression = Off
+--- ./.user.ini ---
+; cPanel-generated php ini directives, do not edit
+; Manual editing of this file may result in unexpected behavior.
+; To make changes to this file, use the cPanel MultiPHP INI Editor (Home >> Software >> MultiPHP INI Editor)
+; For more information, read our documentation (https://go.cpanel.net/EA4ModifyINI)
+
+display_errors = Off
+max_execution_time = 300
+max_input_time = 600
+max_input_vars = 10000
+memory_limit = 1024M
+post_max_size = 1024M
+session.gc_maxlifetime = 1440
+session.save_path = "/tmp"
+upload_max_filesize = 1024M
+zlib.output_compression = Off
+
+DONE.
