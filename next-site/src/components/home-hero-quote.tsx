@@ -1,22 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { quotes, type Quote } from "@/lib/quotes";
 
 interface HomeHeroQuoteProps {
   initial: Quote;
 }
 
+// useLayoutEffect on the server warns; safely no-op there.
+const useIsoLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 /**
  * Click-to-shuffle quote. Mirrors the logo emoji animation: the current
  * quote swipes up & fades out while the next one swipes up from below.
  * The initial quote is chosen server-side (daily seed), so the SSR'd HTML
  * stays stable.
+ *
+ * Height is pinned to the *initial* quote's measured size on first paint,
+ * so swapping to longer quotes will bleed into surrounding padding rather
+ * than reflowing the page.
  */
 export function HomeHeroQuote({ initial }: HomeHeroQuoteProps) {
   const [current, setCurrent] = useState<Quote>(initial);
   const [previous, setPrevious] = useState<Quote | null>(null);
   const [tick, setTick] = useState(0);
+  const sizerRef = useRef<HTMLSpanElement>(null);
+  const [lockedHeight, setLockedHeight] = useState<number | null>(null);
+
+  // Measure the initial quote once, then freeze the container height.
+  useIsoLayoutEffect(() => {
+    if (lockedHeight != null) return;
+    if (sizerRef.current) {
+      setLockedHeight(sizerRef.current.getBoundingClientRect().height);
+    }
+  }, [lockedHeight]);
 
   function shuffle() {
     if (quotes.length <= 1) return;
@@ -36,20 +54,23 @@ export function HomeHeroQuote({ initial }: HomeHeroQuoteProps) {
       type="button"
       onClick={shuffle}
       aria-label="Show another quote"
-      className="group relative block w-full cursor-pointer overflow-hidden text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/40"
+      className="group relative block w-full cursor-pointer text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/40"
+      style={lockedHeight != null ? { height: `${lockedHeight}px` } : undefined}
     >
-      {/* Stack the outgoing + incoming quotes absolutely so they animate
-          past each other. A hidden sizer keeps the button height equal
-          to the taller of the two so layout doesn't jump. */}
-      <span aria-hidden className="invisible block">
-        <QuoteContent quote={current} />
-      </span>
+      {/* Hidden sizer — only used on the very first render to capture the
+          initial quote's height. After that the container is fixed and the
+          sizer no longer participates in layout. */}
+      {lockedHeight == null && (
+        <span ref={sizerRef} aria-hidden className="invisible block">
+          <QuoteContent quote={initial} />
+        </span>
+      )}
 
       {previous !== null && (
         <span
           key={`out-${tick}`}
           aria-hidden
-          className="absolute inset-0 block animate-slide-out-left"
+          className="absolute inset-x-0 top-0 block animate-slide-out-left"
         >
           <QuoteContent quote={previous} />
         </span>
@@ -57,7 +78,7 @@ export function HomeHeroQuote({ initial }: HomeHeroQuoteProps) {
 
       <span
         key={`in-${tick}`}
-        className="absolute inset-0 block animate-slide-in-right"
+        className="absolute inset-x-0 top-0 block animate-slide-in-right"
       >
         <QuoteContent quote={current} />
       </span>

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaTimes } from "react-icons/fa";
 
 interface PostHit {
   type: "post";
@@ -43,7 +43,10 @@ export function TopSearch() {
   const [results, setResults] = useState<SearchResults>(EMPTY);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Mobile-only: collapses the search to an icon button until tapped.
+  const [mobileOpen, setMobileOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Debounced fetch.
   useEffect(() => {
@@ -76,11 +79,16 @@ export function TopSearch() {
   // Close on outside click / Escape.
   useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node))
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setMobileOpen(false);
+      }
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        setMobileOpen(false);
+      }
     }
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
@@ -95,42 +103,71 @@ export function TopSearch() {
 
   function go(href: string) {
     setOpen(false);
+    setMobileOpen(false);
     setValue("");
     router.push(href);
   }
 
   return (
-    <div ref={wrapRef} className="relative w-full max-w-xl">
-      <form
-        role="search"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const q = value.trim();
-          if (!q) return;
-          go(`/search?q=${encodeURIComponent(q)}`);
+    <div ref={wrapRef} className="relative flex w-full justify-end sm:max-w-xl sm:justify-center">
+      {/* Mobile: collapsed icon button. */}
+      <button
+        type="button"
+        aria-label={mobileOpen ? "Close search" : "Open search"}
+        aria-expanded={mobileOpen}
+        onClick={() => {
+          const next = !mobileOpen;
+          setMobileOpen(next);
+          if (next) {
+            requestAnimationFrame(() => inputRef.current?.focus());
+          }
         }}
-        className="flex items-center gap-2 rounded-full border border-primary-200 bg-white px-4 py-2 shadow-sm transition focus-within:border-accent-400 focus-within:ring-2 focus-within:ring-accent-200"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-full text-primary-600 hover:bg-primary-50 hover:text-accent-600 sm:hidden"
       >
-        <FaSearch className="h-4 w-4 text-primary-400" aria-hidden />
-        <input
-          type="search"
-          value={value}
-          onChange={(e) => {
-            setValue(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          placeholder="Search posts, categories, tags…"
-          aria-label="Search"
-          className="w-full bg-transparent text-sm text-primary-800 outline-none placeholder:text-primary-400"
-        />
-      </form>
+        {mobileOpen ? (
+          <FaTimes className="h-4 w-4" aria-hidden />
+        ) : (
+          <FaSearch className="h-4 w-4" aria-hidden />
+        )}
+      </button>
 
-      {open && value.trim() && (
-        <div
-          role="listbox"
-          className="absolute left-0 right-0 top-full z-[80] mt-2 max-h-[70vh] overflow-y-auto rounded-md border border-primary-100 bg-white py-2 shadow-xl"
+      {/* Search panel: a flexible row that becomes a dropdown sheet on mobile. */}
+      <div
+        className={`${
+          mobileOpen ? "flex" : "hidden"
+        } absolute left-0 right-0 top-full z-[85] mt-2 flex-col gap-2 sm:relative sm:top-auto sm:mt-0 sm:flex sm:flex-1`}
+      >
+        <form
+          role="search"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const q = value.trim();
+            if (!q) return;
+            go(`/search?q=${encodeURIComponent(q)}`);
+          }}
+          className="flex items-center gap-2 rounded-full border border-primary-200 bg-white px-4 py-2 shadow-sm transition focus-within:border-accent-400 focus-within:ring-2 focus-within:ring-accent-200"
         >
+          <FaSearch className="h-4 w-4 text-primary-400" aria-hidden />
+          <input
+            ref={inputRef}
+            type="search"
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              setOpen(true);
+            }}
+            onFocus={() => setOpen(true)}
+            placeholder="Search posts, categories, tags…"
+            aria-label="Search"
+            className="w-full bg-transparent text-sm text-primary-800 outline-none placeholder:text-primary-400"
+          />
+        </form>
+
+        {open && value.trim() && (
+          <div
+            role="listbox"
+            className="max-h-[70vh] overflow-y-auto rounded-md border border-primary-100 bg-white py-2 shadow-xl"
+          >
           {loading && !hasResults && (
             <div className="px-4 py-3 text-sm text-primary-500">Searching…</div>
           )}
@@ -196,6 +233,7 @@ export function TopSearch() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -14,3 +14,106 @@ body {
 .prose :where(a):not(:where([class~="not-prose"] *)) {
   @apply text-accent-500 no-underline hover:underline;
 }
+
+/* ============================================================
+   Vintage mode — a stark "1990s/early-2000s" personal blog vibe.
+   Toggled via <html data-mode="vintage"> from ThemeModeToggle.
+   We override at the global level so existing components don't
+   need to know about modes individually.
+   ============================================================ */
+html[data-mode="vintage"] {
+  --vintage-bg: #f5f1e6;
+  --vintage-fg: #1a1a1a;
+  --vintage-link: #0000ee;
+  --vintage-link-visited: #551a8b;
+  --vintage-rule: #8a7a55;
+}
+
+html[data-mode="vintage"] body {
+  background: var(--vintage-bg) !important;
+  color: var(--vintage-fg) !important;
+  font-family: "Times New Roman", Georgia, serif !important;
+}
+
+/* Hide the modern left rail; vintage mode is single-column. */
+html[data-mode="vintage"] aside.fixed {
+  display: none !important;
+}
+
+/* Drop the side-nav offset on main and footer. */
+html[data-mode="vintage"] main,
+html[data-mode="vintage"] footer {
+  margin-left: 0 !important;
+}
+
+/* Header: flat bar, no shadow, no rounded controls. */
+html[data-mode="vintage"] header.fixed {
+  background: var(--vintage-bg) !important;
+  border-bottom: 2px solid var(--vintage-rule) !important;
+  box-shadow: none !important;
+}
+
+html[data-mode="vintage"] header a,
+html[data-mode="vintage"] header span,
+html[data-mode="vintage"] header button {
+  color: var(--vintage-fg) !important;
+  font-family: "Times New Roman", Georgia, serif !important;
+}
+
+/* Search: square, no rounding. */
+html[data-mode="vintage"] header form {
+  border-radius: 0 !important;
+  border: 1px solid var(--vintage-rule) !important;
+  background: #fffdf5 !important;
+  box-shadow: none !important;
+}
+
+/* Strip rounded corners and shadows everywhere. */
+html[data-mode="vintage"] *:not(svg):not(path) {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Links: classic blue underlined, purple visited. */
+html[data-mode="vintage"] a {
+  color: var(--vintage-link) !important;
+  text-decoration: underline !important;
+}
+html[data-mode="vintage"] a:visited {
+  color: var(--vintage-link-visited) !important;
+}
+
+/* Headings: serif, plain. */
+html[data-mode="vintage"] h1,
+html[data-mode="vintage"] h2,
+html[data-mode="vintage"] h3,
+html[data-mode="vintage"] h4,
+html[data-mode="vintage"] h5,
+html[data-mode="vintage"] h6,
+html[data-mode="vintage"] .font-heading {
+  font-family: "Times New Roman", Georgia, serif !important;
+  font-style: normal !important;
+  letter-spacing: 0 !important;
+  color: var(--vintage-fg) !important;
+}
+
+/* Hide hero pattern backgrounds — vintage prefers bare pages. */
+html[data-mode="vintage"] [data-pattern-hero],
+html[data-mode="vintage"] [data-pattern-hero] * {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+/* Cards become simple bordered boxes. */
+html[data-mode="vintage"] article,
+html[data-mode="vintage"] .bg-white {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Horizontal rules between posts in the archive. */
+html[data-mode="vintage"] main article + article {
+  border-top: 1px dashed var(--vintage-rule) !important;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}

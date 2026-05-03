@@ -24,7 +24,7 @@ export function PatternHero({
       : "bg-accent-700 border-t-[10px] border-accent-400";
 
   return (
-    <section className={`relative overflow-hidden ${base} ${className}`}>
+    <section data-pattern-hero className={`relative overflow-hidden ${base} ${className}`}>
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay"

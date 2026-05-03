@@ -3,6 +3,7 @@ import "./globals.css";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { SideNav } from "@/components/side-nav";
+import { ThemeModeScript } from "@/components/theme-mode";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -27,7 +28,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeModeScript />
+      </head>
       <body className="flex min-h-screen flex-col">
         <Header />
         <SideNav />
