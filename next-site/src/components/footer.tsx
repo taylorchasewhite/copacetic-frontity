@@ -26,14 +26,14 @@ export function Footer() {
             vintage mode hides it, so list the pages here in classic
             footer-nav style. Hidden in modern mode via globals.css. */}
         <nav data-vintage-footer-nav className="hidden text-center">
-          {siteConfig.menu.map((item, i) => (
-            <span key={item.href}>
-              {i > 0 && <span aria-hidden> | </span>}
-              <Link href={item.href}>{item.label}</Link>
-            </span>
-          ))}
-          <span aria-hidden> | </span>
-          <Link href="/sitemap">Site map</Link>
+          {siteConfig.menu
+            .filter((item) => item.href !== "/")
+            .map((item, i) => (
+              <span key={item.href}>
+                {i > 0 && <span aria-hidden> | </span>}
+                <Link href={item.href}>{item.label}</Link>
+              </span>
+            ))}
         </nav>
 
         <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">

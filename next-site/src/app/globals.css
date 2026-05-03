@@ -202,29 +202,24 @@ html[data-mode="vintage"] [data-search-results] {
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Search field: flatten the modern pill into a traditional white input
-   with a thin inset border, monospace text, and a `>` prompt — closer to
-   a classic command-line entry than a rounded chrome pill. */
+/* Search field: flatten the modern pill into a classic HTML <input> —
+   white field, sunken/beveled border, normal text. No prompt glyph; this
+   is meant to look like a stock 90s/2000s form input, not a terminal. */
 html[data-mode="vintage"] [data-search-form] {
   background: #ffffff !important;
-  border: 1px solid var(--vintage-rule) !important;
+  border: 1px solid #7f9db9 !important; /* classic Win98/2000 input border */
+  border-top-color: #404040 !important;
+  border-left-color: #404040 !important;
   border-radius: 0 !important;
-  padding: 4px 8px !important;
-  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.08) !important;
+  padding: 2px 6px !important;
+  box-shadow: none !important;
 }
 html[data-mode="vintage"] [data-search-form] [data-search-icon] {
   display: none !important;
 }
-html[data-mode="vintage"] [data-search-form] [data-search-prompt] {
-  display: inline !important;
-  color: #4b5563;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-weight: 700;
-  line-height: 1;
-}
 html[data-mode="vintage"] [data-search-input] {
   background: #ffffff !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-family: "Times New Roman", Georgia, serif !important;
   color: #111827 !important;
 }
 
