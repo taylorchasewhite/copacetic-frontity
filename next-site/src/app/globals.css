@@ -179,3 +179,62 @@ html[data-mode="vintage"] .bg-accent-100 {
 html[data-mode="vintage"] [data-logo-emoji] {
   display: none !important;
 }
+
+/* Footer icon links: keep them as subtle gray glyphs (matching the © text)
+   instead of inheriting the loud vintage blue underlined link style. */
+html[data-mode="vintage"] [data-footer-icon] {
+  color: #9ca3af !important; /* gray-400, same vibe as footer text */
+  text-decoration: none !important;
+}
+html[data-mode="vintage"] [data-footer-icon]:hover {
+  color: #4b5563 !important; /* gray-600 */
+}
+html[data-mode="vintage"] [data-footer-icon]:visited {
+  color: #9ca3af !important;
+}
+
+/* Search results dropdown: the global vintage `.bg-white` override makes
+   it transparent, which collides with the page text behind. Restore an
+   opaque white panel with a thin border. */
+html[data-mode="vintage"] [data-search-results] {
+  background: #ffffff !important;
+  border: 1px solid var(--vintage-rule) !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Search field: flatten the modern pill into a traditional white input
+   with a thin inset border, monospace text, and a `>` prompt — closer to
+   a classic command-line entry than a rounded chrome pill. */
+html[data-mode="vintage"] [data-search-form] {
+  background: #ffffff !important;
+  border: 1px solid var(--vintage-rule) !important;
+  border-radius: 0 !important;
+  padding: 4px 8px !important;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.08) !important;
+}
+html[data-mode="vintage"] [data-search-form] [data-search-icon] {
+  display: none !important;
+}
+html[data-mode="vintage"] [data-search-form] [data-search-prompt] {
+  display: inline !important;
+  color: #4b5563;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  line-height: 1;
+}
+html[data-mode="vintage"] [data-search-input] {
+  background: #ffffff !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  color: #111827 !important;
+}
+
+/* Vintage site-map link: the left rail is hidden in vintage mode, so
+   surface a plain text link to /sitemap next to the modern toggle. */
+html[data-mode="vintage"] [data-vintage-nav] {
+  display: inline-block !important;
+}
+
+/* Vintage footer nav: classic pipe-separated link bar above the © line. */
+html[data-mode="vintage"] [data-vintage-footer-nav] {
+  display: block !important;
+}

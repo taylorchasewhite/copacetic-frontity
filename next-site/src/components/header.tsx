@@ -5,6 +5,7 @@ import { LogoEmoji } from "./logo-emoji";
 import { MobileMenu } from "./mobile-menu";
 import { TopSearch } from "./top-search";
 import { ThemeModeToggle } from "./theme-mode";
+import { VintageNav } from "./vintage-nav";
 
 export function Header() {
   // Rotate the logo emoji daily — stable for the whole day so SSR/CDN
@@ -32,6 +33,7 @@ export function Header() {
           <TopSearch />
         </div>
         <div className="flex flex-shrink-0 items-center gap-1">
+          <VintageNav />
           <ThemeModeToggle />
         </div>
         {/* Right gutter to balance the left logo column on wide screens. */}
