@@ -22,11 +22,11 @@ body {
    need to know about modes individually.
    ============================================================ */
 html[data-mode="vintage"] {
-  --vintage-bg: #f5f1e6;
+  --vintage-bg: #fbfaf6;
   --vintage-fg: #1a1a1a;
   --vintage-link: #0000ee;
   --vintage-link-visited: #551a8b;
-  --vintage-rule: #8a7a55;
+  --vintage-rule: #c8c1ad;
 }
 
 html[data-mode="vintage"] body {
@@ -60,11 +60,11 @@ html[data-mode="vintage"] header button {
   font-family: "Times New Roman", Georgia, serif !important;
 }
 
-/* Search: square, no rounding. */
+/* Search: square, no rounding, flat white field. */
 html[data-mode="vintage"] header form {
   border-radius: 0 !important;
   border: 1px solid var(--vintage-rule) !important;
-  background: #fffdf5 !important;
+  background: #ffffff !important;
   box-shadow: none !important;
 }
 

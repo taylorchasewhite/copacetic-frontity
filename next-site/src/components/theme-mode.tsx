@@ -44,10 +44,27 @@ export function ThemeModeToggle() {
     }
   }
 
-  // Avoid hydration mismatch: render a stable placeholder until mounted.
-  const text = mode === "modern" ? "vintage" : "modern";
+  // Modern mode shows a paintbrush icon (era-appropriate); vintage mode
+  // shows a plain text link, since icon-only buttons weren't a vintage-web
+  // pattern.
   const label =
     mode === "modern" ? "Switch to vintage UI" : "Switch to modern UI";
+
+  if (mode === "vintage") {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={label}
+        title={label}
+        suppressHydrationWarning
+        className="inline-flex shrink-0 items-center whitespace-nowrap px-2 py-1 text-sm text-primary-700 underline hover:text-accent-600"
+      >
+        <span aria-hidden>{mounted ? "modern" : "toggle"}</span>
+        <span className="sr-only">{label}</span>
+      </button>
+    );
+  }
 
   return (
     <button
@@ -56,9 +73,9 @@ export function ThemeModeToggle() {
       aria-label={label}
       title={label}
       suppressHydrationWarning
-      className="inline-flex shrink-0 items-center whitespace-nowrap rounded-md px-2 py-1 text-sm text-primary-500 transition-colors hover:bg-primary-50 hover:text-accent-600"
+      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-primary-500 transition-colors hover:bg-primary-50 hover:text-accent-600"
     >
-      <span aria-hidden>{mounted ? text : "vintage"}</span>
+      <FaPaintBrush className="h-4 w-4" aria-hidden />
       <span className="sr-only">{mounted ? label : "Toggle UI mode"}</span>
     </button>
   );
