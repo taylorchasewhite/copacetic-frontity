@@ -45,7 +45,7 @@ export function ThemeModeToggle() {
   }
 
   // Avoid hydration mismatch: render a stable placeholder until mounted.
-  const Icon = mode === "modern" ? FaTv : FaPaintBrush;
+  const text = mode === "modern" ? "vintage" : "modern";
   const label =
     mode === "modern" ? "Switch to vintage UI" : "Switch to modern UI";
 
@@ -56,9 +56,9 @@ export function ThemeModeToggle() {
       aria-label={label}
       title={label}
       suppressHydrationWarning
-      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-primary-500 transition-colors hover:bg-primary-50 hover:text-accent-600"
+      className="inline-flex shrink-0 items-center whitespace-nowrap rounded-md px-2 py-1 text-sm text-primary-500 transition-colors hover:bg-primary-50 hover:text-accent-600"
     >
-      <Icon className="h-4 w-4" aria-hidden />
+      <span aria-hidden>{mounted ? text : "vintage"}</span>
       <span className="sr-only">{mounted ? label : "Toggle UI mode"}</span>
     </button>
   );

@@ -65,6 +65,7 @@ export function LogoEmoji({ initial }: LogoEmojiProps) {
       type="button"
       onClick={pickNext}
       aria-label="Change emoji"
+      data-logo-emoji
       className="relative inline-block h-7 w-7 overflow-hidden align-middle"
     >
       {/* Outgoing: starts in place, swipes up & fades out. */}

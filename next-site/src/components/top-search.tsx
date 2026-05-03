@@ -145,7 +145,7 @@ export function TopSearch() {
             if (!q) return;
             go(`/search?q=${encodeURIComponent(q)}`);
           }}
-          className="flex items-center gap-2 rounded-full border border-primary-200 bg-white px-4 py-2 shadow-sm transition focus-within:border-accent-400 focus-within:ring-2 focus-within:ring-accent-200"
+          className="flex items-center gap-2 rounded-md border border-transparent bg-white px-4 py-2 transition focus-within:ring-2 focus-within:ring-accent-200"
         >
           <FaSearch className="h-4 w-4 text-primary-400" aria-hidden />
           <input

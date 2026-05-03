@@ -18,16 +18,24 @@ interface PageProps {
 
 async function resolve(slug: string): Promise<WPPost | null> {
   // WordPress can return malformed (HTML) responses intermittently when the
-  // upstream is misbehaving. Treat that as "not found" rather than a 500 so
-  // the user sees a recoverable page instead of an opaque server error.
+  // upstream is misbehaving. For *transient* failures we re-throw so Next.js
+  // surfaces an error (and does NOT cache a 404 for an hour); for genuine
+  // "no such post or page" results we return null so the route renders 404.
   try {
     const post = await getPostBySlug(slug);
     if (post) return post;
-    return await getPageBySlug(slug);
   } catch (err) {
-    console.error(`[/${slug}] WP lookup failed:`, err);
-    return null;
+    if ((err as { isTransient?: boolean })?.isTransient) throw err;
+    console.error(`[/${slug}] WP post lookup failed:`, err);
   }
+  try {
+    const page = await getPageBySlug(slug);
+    if (page) return page;
+  } catch (err) {
+    if ((err as { isTransient?: boolean })?.isTransient) throw err;
+    console.error(`[/${slug}] WP page lookup failed:`, err);
+  }
+  return null;
 }
 
 export async function generateMetadata({

@@ -173,3 +173,9 @@ html[data-mode="vintage"] .bg-accent-100 {
   background: transparent !important;
   padding: 0 !important;
 }
+
+/* Emojis weren't really a thing in the vintage web era — hide the
+   rotating logo emoji in vintage mode. The text logo still shows. */
+html[data-mode="vintage"] [data-logo-emoji] {
+  display: none !important;
+}

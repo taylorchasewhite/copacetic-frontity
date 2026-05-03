@@ -28,12 +28,22 @@ async function wpFetch<T>(
     url.searchParams.set(k, String(v));
   }
 
-  const res = await fetch(url, {
+  // Try the cached fetch first. If WordPress hands back HTML (caching layer,
+  // WAF, maintenance page, malware redirect, etc.) we retry once with cache
+  // disabled so a single bad response can't poison the ISR cache for the
+  // full revalidate window.
+  let res = await fetch(url, {
     next: {
       revalidate: opts.revalidate ?? DEFAULT_REVALIDATE,
       tags: opts.tags,
     },
   });
+
+  let contentType = res.headers.get("content-type") ?? "";
+  if (res.ok && !contentType.includes("application/json")) {
+    res = await fetch(url, { cache: "no-store" });
+    contentType = res.headers.get("content-type") ?? "";
+  }
 
   if (!res.ok) {
     throw new Error(
@@ -41,16 +51,8 @@ async function wpFetch<T>(
     );
   }
 
-  // Some hosting providers (caching layers, WAFs, maintenance pages) reply
-  // with HTML even on a 200 — guard so the JSON parser doesn't blow up the
-  // entire prerender with an opaque "Unexpected token <" error.
-  const contentType = res.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) {
     const preview = (await res.text()).slice(0, 120).replace(/\s+/g, " ");
-    // Throwing inside a Next.js fetch() with `next: { revalidate }` causes
-    // the bad response to be cached for the revalidate window. Use the
-    // unstable cache-busting hint so the next request retries immediately
-    // instead of serving a poisoned cache entry.
     const err = new Error(
       `WP returned non-JSON (${contentType || "no content-type"}) for ${url.toString()} :: ${preview}`
     );
