@@ -5,7 +5,8 @@ import { localizeWpLink } from "@/lib/links";
 import { isAllowedImageHost } from "@/lib/images";
 
 function featuredUrl(post: WPPost): string | undefined {
-  return post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
+  const src = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
+  return typeof src === "string" && src.length > 0 ? src : undefined;
 }
 
 function primaryCategory(post: WPPost): WPTerm | undefined {

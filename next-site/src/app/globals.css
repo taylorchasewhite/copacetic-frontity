@@ -117,3 +117,59 @@ html[data-mode="vintage"] main article + article {
   padding-top: 1rem;
   margin-top: 1rem;
 }
+
+/* ---- Kill all modern motion & effects ----
+   The 90s/00s web had no CSS transitions, no transforms, no animations,
+   no filters, no gradients. Strip them globally in vintage mode so the
+   site genuinely feels static and document-like. */
+html[data-mode="vintage"] *,
+html[data-mode="vintage"] *::before,
+html[data-mode="vintage"] *::after {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  text-shadow: none !important;
+}
+
+/* Background images / gradients (e.g. hero patterns, accent fills). */
+html[data-mode="vintage"] *:not(img):not(svg):not(picture):not(video) {
+  background-image: none !important;
+}
+
+/* Disable card / link hover lift & color flips — links just stay blue. */
+html[data-mode="vintage"] a:hover {
+  text-decoration: underline !important;
+  color: var(--vintage-link) !important;
+  background: transparent !important;
+}
+html[data-mode="vintage"] a:visited:hover {
+  color: var(--vintage-link-visited) !important;
+}
+html[data-mode="vintage"] button:hover,
+html[data-mode="vintage"] [role="button"]:hover {
+  background: transparent !important;
+}
+
+/* Quote button: no slide animation, no fixed/locked height — just show
+   the current quote as plain centered text. The outgoing/absolutely
+   positioned siblings collapse harmlessly. */
+html[data-mode="vintage"] button[aria-label="Show another quote"] {
+  height: auto !important;
+  position: static !important;
+}
+html[data-mode="vintage"] button[aria-label="Show another quote"] > span {
+  position: static !important;
+  display: block !important;
+}
+html[data-mode="vintage"] button[aria-label="Show another quote"] > span[aria-hidden="true"] {
+  display: none !important;
+}
+
+/* Category chips become inline brackets, not pills. */
+html[data-mode="vintage"] .bg-accent-50,
+html[data-mode="vintage"] .bg-accent-100 {
+  background: transparent !important;
+  padding: 0 !important;
+}

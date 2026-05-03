@@ -40,6 +40,13 @@ export default async function ContentPage({ params }: PageProps) {
   if (!item) notFound();
 
   const featured = item._embedded?.["wp:featuredmedia"]?.[0];
+  // WordPress occasionally returns a malformed embedded media object
+  // (e.g. the API root payload) with no `source_url`. Treat that as no
+  // featured image rather than crashing `next/image` with `src=undefined`.
+  const featuredSrc =
+    featured && typeof featured.source_url === "string"
+      ? featured.source_url
+      : undefined;
   const author = item._embedded?.author?.[0];
   const isPost = item.type === "post";
 
@@ -89,12 +96,12 @@ export default async function ContentPage({ params }: PageProps) {
 
       <div className="mx-auto w-[92%] max-w-content py-10">
         <article className="rounded-md border border-primary-100 bg-white p-6 shadow-sm md:p-10">
-          {featured && (
+          {featuredSrc && (
             <div className="relative mb-8 aspect-[16/9] w-full overflow-hidden rounded-md">
-              {isAllowedImageHost(featured.source_url) ? (
+              {isAllowedImageHost(featuredSrc) ? (
                 <Image
-                  src={featured.source_url}
-                  alt={featured.alt_text || ""}
+                  src={featuredSrc}
+                  alt={featured?.alt_text || ""}
                   fill
                   className="object-cover"
                   sizes="(max-width: 1150px) 100vw, 1150px"
@@ -103,8 +110,8 @@ export default async function ContentPage({ params }: PageProps) {
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={featured.source_url}
-                  alt={featured.alt_text || ""}
+                  src={featuredSrc}
+                  alt={featured?.alt_text || ""}
                   className="absolute inset-0 h-full w-full object-cover"
                   loading="eager"
                   decoding="async"
