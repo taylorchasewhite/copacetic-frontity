@@ -17,9 +17,17 @@ interface PageProps {
 }
 
 async function resolve(slug: string): Promise<WPPost | null> {
-  const post = await getPostBySlug(slug);
-  if (post) return post;
-  return getPageBySlug(slug);
+  // WordPress can return malformed (HTML) responses intermittently when the
+  // upstream is misbehaving. Treat that as "not found" rather than a 500 so
+  // the user sees a recoverable page instead of an opaque server error.
+  try {
+    const post = await getPostBySlug(slug);
+    if (post) return post;
+    return await getPageBySlug(slug);
+  } catch (err) {
+    console.error(`[/${slug}] WP lookup failed:`, err);
+    return null;
+  }
 }
 
 export async function generateMetadata({

@@ -1,0 +1,292 @@
+﻿=== Show context around _pwsa in stock themes ===
+##### wp-content/themes/twentyseventeen/functions.php #####
+
+##### wp-content/themes/twentytwelve/functions.php #####
+
+##### wp-content/themes/twentythirteen/functions.php #####
+
+##### wp-content/themes/twentyfourteen/functions.php #####
+
+##### wp-content/themes/customizr/core/fmk-ccat.php #####
+
+
+=== sso.php FULL ===
+<?php
+/**
+ * Plugin Name: SSO
+ * Author: Garth Mortensen, Mike Hansen
+ * Version: 0.5
+ * License: GPLv2 or later
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.html
+ */
+
+if( ! function_exists( 'sso_check' ) ){
+    function sso_check(){
+        if ( ! isset( $_GET['salt'] ) || ! isset( $_GET['nonce'] ) ){
+            sso_req_login();
+        }
+        if ( sso_check_blocked() ){
+            sso_req_login();
+        }
+        $nonce = esc_attr( $_GET['nonce'] );
+        $salt  = esc_attr( $_GET['salt'] );
+        $has_epoch = preg_match('/-e(\d+)$/', $nonce, $epoch);
+        $expired = ( $has_epoch && (time() - $epoch[1]) > 300 ) ? true : false;
+
+        if ( ! empty( $_GET['user'] ) ){
+            $user = esc_attr( $_GET['user'] );
+        }else{
+            $user = get_users( array( 'role' => 'administrator', 'number' => 1 ) );
+            if ( is_array( $user ) && is_a( $user[0], 'WP_User' ) ){
+                $user = $user[0];
+                $user = $user->ID;
+            }else{
+                $user = 0;
+            }
+        }
+        $bounce = ! empty( $_GET['bounce'] ) ? $_GET['bounce'] : '';
+        $hash   = base64_encode( hash( 'sha256', $nonce . $salt, false ) );
+        $hash   = substr( $hash, 0, 64 );
+
+        $token = get_transient( 'sso_token' );
+        $from_options = false;
+        if ( $token === false ) {
+            $token = get_option( 'sso_token' );
+            $from_options = true;
+        }
+        if ( ! $expired && $token == $hash ) {
+            if ( is_email( $user ) ){
+                $user = get_user_by( 'email', $user );
+            }else{
+                $user = get_user_by( 'id', (int) $user );
+            }
+            if ( $from_options ) {
+                delete_option( 'sso_token' );
+            }
+            if ( is_a( $user, 'WP_User' ) ){
+                wp_set_current_user( $user->ID, $user->user_login );
+                wp_set_auth_cookie( $user->ID );
+                do_action( 'wp_login', $user->user_login, $user );
+                delete_transient( 'sso_token' );
+                wp_safe_redirect( admin_url( $bounce ) );
+            }else{
+                sso_req_login();
+            }
+        }else{
+            sso_add_failed_attempt();
+            sso_req_login();
+        }
+        die();
+    }
+}
+add_action( 'wp_ajax_nopriv_sso-check', 'sso_check' );
+add_action( 'wp_ajax_sso-check', 'sso_check' );
+
+if( ! function_exists( 'sso_req_login' ) ){
+    function sso_req_login(){
+        wp_safe_redirect( wp_login_url() );
+    }
+}
+
+if( ! function_exists( 'sso_get_attempt_id' ) ){
+    function sso_get_attempt_id(){
+        return 'sso' . esc_url( $_SERVER['REMOTE_ADDR'] );
+    }
+}
+
+if( ! function_exists( 'sso_add_failed_attempt' ) ){
+    function sso_add_failed_attempt(){
+        $attempts = get_transient( sso_get_attempt_id(), 0 );
+        $attempts ++;
+        set_transient( sso_get_attempt_id(), $attempts, 300 );
+    }
+}
+
+if( ! function_exists( 'sso_check_blocked' ) ){
+    function sso_check_blocked(){
+        $attempts = get_transient( sso_get_attempt_id(), 0 );
+        if ( $attempts > 4 ){
+            return true;
+        }
+        return false;
+    }
+}
+
+=== full uploads/wpcode listing ===
+wp-content/uploads/wpcode/index.html
+wp-content/uploads/wpcode/cache/index.html
+wp-content/uploads/wpcode/cache/library/index.html
+wp-content/uploads/wpcode/cache/library/snippets.json
+wp-content/uploads/wpcode/cache/docs.json
+
+=== files modified last 30 days OUTSIDE jetpack ===
+./wp-config.php
+./wp-content/themes/twentyeleven/page.php
+./wp-content/themes/twentyeleven/single.php
+./wp-content/themes/twentyeleven/search.php
+./wp-content/themes/twentyeleven/functions.php
+./wp-content/themes/twentyeleven/image.php
+./wp-content/themes/twentyeleven/404.php
+./wp-content/themes/twentyeleven/header.php
+./wp-content/themes/twentyeleven/footer.php
+./wp-content/themes/twentyeleven/tag.php
+./wp-content/themes/twentyeleven/content-page.php
+./wp-content/themes/twentyeleven/content-status.php
+./wp-content/themes/twentyeleven/content-image.php
+./wp-content/themes/twentyeleven/content-featured.php
+./wp-content/themes/twentyeleven/showcase.php
+./wp-content/themes/twentyeleven/sidebar.php
+./wp-content/themes/twentyeleven/author.php
+./wp-content/themes/twentyeleven/category.php
+./wp-content/themes/twentyeleven/content-single.php
+./wp-content/themes/twentyeleven/sidebar-page.php
+./wp-content/themes/twentyeleven/comments.php
+./wp-content/themes/twentyeleven/inc/block-patterns.php
+./wp-content/themes/twentyeleven/inc/widgets.php
+./wp-content/themes/twentyeleven/inc/theme-options.php
+./wp-content/themes/twentyeleven/searchform.php
+./wp-content/themes/twentyeleven/content.php
+./wp-content/themes/twentyeleven/content-intro.php
+./wp-content/themes/twentyeleven/index.php
+./wp-content/themes/twentyeleven/content-aside.php
+./wp-content/themes/twentyeleven/sidebar-footer.php
+./wp-content/themes/twentyeleven/content-link.php
+./wp-content/themes/twentyeleven/archive.php
+./wp-content/themes/twentyeleven/content-gallery.php
+./wp-content/themes/twentyeleven/content-quote.php
+./wp-content/themes/twentyseventeen/page.php
+./wp-content/themes/twentyseventeen/single.php
+./wp-content/themes/twentyseventeen/search.php
+./wp-content/themes/twentyseventeen/functions.php
+./wp-content/themes/twentyseventeen/404.php
+./wp-content/themes/twentyseventeen/header.php
+./wp-content/themes/twentyseventeen/footer.php
+./wp-content/themes/twentyseventeen/sidebar.php
+./wp-content/themes/twentyseventeen/front-page.php
+./wp-content/themes/twentyseventeen/comments.php
+./wp-content/themes/twentyseventeen/inc/color-patterns.php
+./wp-content/themes/twentyseventeen/inc/custom-header.php
+./wp-content/themes/twentyseventeen/inc/template-functions.php
+./wp-content/themes/twentyseventeen/inc/block-patterns.php
+./wp-content/themes/twentyseventeen/inc/customizer.php
+./wp-content/themes/twentyseventeen/inc/icon-functions.php
+
+=== files modified last 7 days ===
+./wp-config.php
+./wp-content/themes/twentyeleven/page.php
+./wp-content/themes/twentyeleven/single.php
+./wp-content/themes/twentyeleven/search.php
+./wp-content/themes/twentyeleven/functions.php
+./wp-content/themes/twentyeleven/image.php
+./wp-content/themes/twentyeleven/404.php
+./wp-content/themes/twentyeleven/header.php
+./wp-content/themes/twentyeleven/footer.php
+./wp-content/themes/twentyeleven/tag.php
+./wp-content/themes/twentyeleven/content-page.php
+./wp-content/themes/twentyeleven/content-status.php
+./wp-content/themes/twentyeleven/content-image.php
+./wp-content/themes/twentyeleven/content-featured.php
+./wp-content/themes/twentyeleven/showcase.php
+./wp-content/themes/twentyeleven/sidebar.php
+./wp-content/themes/twentyeleven/author.php
+./wp-content/themes/twentyeleven/category.php
+./wp-content/themes/twentyeleven/content-single.php
+./wp-content/themes/twentyeleven/sidebar-page.php
+./wp-content/themes/twentyeleven/comments.php
+./wp-content/themes/twentyeleven/inc/block-patterns.php
+./wp-content/themes/twentyeleven/inc/widgets.php
+./wp-content/themes/twentyeleven/inc/theme-options.php
+./wp-content/themes/twentyeleven/searchform.php
+./wp-content/themes/twentyeleven/content.php
+./wp-content/themes/twentyeleven/content-intro.php
+./wp-content/themes/twentyeleven/index.php
+./wp-content/themes/twentyeleven/content-aside.php
+./wp-content/themes/twentyeleven/sidebar-footer.php
+
+=== look at theme functions.php first lines ===
+<?php
+/**
+ * Twenty Seventeen functions and definitions
+ *
+ * @link https://developer.wordpress.org/themes/basics/theme-functions/
+ *
+ * @package WordPress
+ * @subpackage Twenty_Seventeen
+ * @since Twenty Seventeen 1.0
+ */
+---
+=== full file size of theme functions.php vs sample twentyfifteen ===
+  758 wp-content/themes/twentyseventeen/functions.php
+  669 wp-content/themes/twentyfifteen/functions.php
+  762 wp-content/themes/twentytwelve/functions.php
+ 2189 total
+
+=== check for the option _WP_PWSA constant being defined anywhere ===
+
+=== option named 'l' or 'd' (set by malware) ===
+Error: Could not get 'l' option. Does it exist?
+Error: Could not get 'd' option. Does it exist?
+
+=== PHP error log tail ===
+[20-Nov-2025 21:18:07 America/Boise] PHP Fatal error:  Uncaught Error: Call to undefined function add_action() in /home4/taylosj9/public_html/wp-content/mu-plugins/sso.php:69
+Stack trace:
+#0 {main}
+  thrown in /home4/taylosj9/public_html/wp-content/mu-plugins/sso.php on line 69
+[10-Jan-2026 11:03:29 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[10-Jan-2026 04:03:29 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[10-Jan-2026 12:00:43 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[10-Jan-2026 05:00:43 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[11-Jan-2026 10:50:38 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[11-Jan-2026 03:50:38 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[11-Jan-2026 11:45:42 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[11-Jan-2026 04:45:42 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[12-Jan-2026 11:36:38 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[12-Jan-2026 04:36:38 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[12-Jan-2026 12:29:47 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[12-Jan-2026 05:29:47 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[13-Jan-2026 10:50:50 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[13-Jan-2026 03:50:50 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[13-Jan-2026 11:46:22 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[13-Jan-2026 04:46:22 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[14-Jan-2026 10:54:44 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[14-Jan-2026 03:54:44 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[14-Jan-2026 11:49:48 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[14-Jan-2026 04:49:48 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[15-Jan-2026 11:43:21 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[15-Jan-2026 04:43:21 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[15-Jan-2026 12:34:26 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[15-Jan-2026 05:34:26 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[16-Jan-2026 11:07:47 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[16-Jan-2026 04:07:47 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[16-Jan-2026 12:01:06 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[16-Jan-2026 05:01:06 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[17-Jan-2026 11:38:06 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[17-Jan-2026 04:38:06 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[17-Jan-2026 12:32:16 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[17-Jan-2026 05:32:16 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[18-Jan-2026 11:21:04 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[18-Jan-2026 04:21:04 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[18-Jan-2026 12:15:08 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[18-Jan-2026 05:15:08 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[19-Jan-2026 11:43:02 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[19-Jan-2026 04:43:02 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[19-Jan-2026 12:38:16 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[19-Jan-2026 05:38:16 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[20-Jan-2026 11:21:47 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[20-Jan-2026 04:21:47 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[20-Jan-2026 12:16:04 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[20-Jan-2026 05:16:04 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[21-Jan-2026 11:27:40 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[21-Jan-2026 04:27:40 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[21-Jan-2026 12:21:21 UTC] PHP Warning:  PHP Startup: Unable to load dynamic library 'imagick.so' (tried: /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so: undefined symbol: php_strtolower), /opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so (/opt/cpanel/ea-php84/root/usr/lib64/php/modules/imagick.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+[21-Jan-2026 05:21:21 America/Boise] PHP Warning:  PHP Startup: session.gc_divisor must be greater than 0 in Unknown on line 0
+[24-Mar-2026 04:20:39 UTC] Cron reschedule event error for hook: wp_privacy_delete_old_export_files, Error code: could_not_set, Error message: The cron event list could not be saved., Data: {"schedule":"hourly","args":[],"interval":3600}
+[01-May-2026 04:57:41 UTC] Cron reschedule event error for hook: ngg_delete_expired_transients, Error code: invalid_schedule, Error message: Event schedule does not exist., Data: {"schedule":"ngg_custom","args":[],"interval":900}
+
+=== access log to /wp-json today ===
+
+=== users with admin role ===
+ID,user_login,display_name,user_email,user_registered,roles
+40,admin,Taylor,taylorchasewhite@gmail.com,"2015-04-22 04:59:27","administrator,bbp_keymaster"
+7,taylorchasewhite,"Taylor White",whitetc2@gmail.com,"2014-02-28 03:52:59","administrator,bbp_keymaster"
+1,tcw,Taylor,chasebrinling@gmail.com,"2013-12-20 03:48:46","administrator,bbp_keymaster"

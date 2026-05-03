@@ -47,9 +47,15 @@ async function wpFetch<T>(
   const contentType = res.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) {
     const preview = (await res.text()).slice(0, 120).replace(/\s+/g, " ");
-    throw new Error(
+    // Throwing inside a Next.js fetch() with `next: { revalidate }` causes
+    // the bad response to be cached for the revalidate window. Use the
+    // unstable cache-busting hint so the next request retries immediately
+    // instead of serving a poisoned cache entry.
+    const err = new Error(
       `WP returned non-JSON (${contentType || "no content-type"}) for ${url.toString()} :: ${preview}`
     );
+    (err as Error & { isTransient?: boolean }).isTransient = true;
+    throw err;
   }
 
   const data = (await res.json()) as T;

@@ -1,0 +1,345 @@
+﻿=== options with malware markers ===
+=== postmeta ===
+post_id	meta_key	v
+173806	_wpcode_last_error	a:10:{s:4:"type";i:2;s:7:"message";s:52:"dns_get_record(): A temporary server error occurred.";s:4:"file";s:136:"/home4/taylosj9/public_html/wp-content/plugins/insert-headers-and-footers/includes/class-wpcode-snippet-execute.php(419) : eval()'d code";s:4:"line";i:235;s:8:"wpc_type";s:11:"deactivated
+173822	_wpcode_last_error	a:10:{s:4:"type";i:2;s:7:"message";s:52:"dns_get_record(): A temporary server error occurred.";s:4:"file";s:136:"/home4/taylosj9/public_html/wp-content/plugins/insert-headers-and-footers/includes/class-wpcode-snippet-execute.php(419) : eval()'d code";s:4:"line";i:238;s:8:"wpc_type";s:5:"error";s:16:
+173816	_wpcode_last_error	a:10:{s:4:"type";i:2;s:7:"message";s:52:"dns_get_record(): A temporary server error occurred.";s:4:"file";s:136:"/home4/taylosj9/public_html/wp-content/plugins/insert-headers-and-footers/includes/class-wpcode-snippet-execute.php(419) : eval()'d code";s:4:"line";i:238;s:8:"wpc_type";s:5:"error";s:16:
+173809	_wpcode_last_error	a:10:{s:4:"type";i:2;s:7:"message";s:52:"dns_get_record(): A temporary server error occurred.";s:4:"file";s:136:"/home4/taylosj9/public_html/wp-content/plugins/insert-headers-and-footers/includes/class-wpcode-snippet-execute.php(419) : eval()'d code";s:4:"line";i:235;s:8:"wpc_type";s:11:"deactivated
+173557	_wpcode_last_error	a:10:{s:4:"type";i:2;s:7:"message";s:52:"dns_get_record(): A temporary server error occurred.";s:4:"file";s:136:"/home4/taylosj9/public_html/wp-content/plugins/insert-headers-and-footers/includes/class-wpcode-snippet-execute.php(419) : eval()'d code";s:4:"line";i:184;s:8:"wpc_type";s:5:"error";s:16:
+=== usermeta ===
+=== posts ===
+ID	post_status	post_type	v
+173806	trash	wpcode	$_pwsa = 'da1b61dff981349d695dd5c5b6ed313d';
+\ndefine('_WP_WEBSITE', "www.old.taylorchasewhite.com");
+\n
+\nif (!defined('DONOTCACHEPAGE')) {
+\n    define('DONOTCACHEPAGE', true);
+\n}
+\n
+\nadd_filter('do_rocket_generate_caching_files', '__return_false');
+\nadd_filter('w3tc_can_cache', '__return_false');
+\nadd
+173816	trash	wpcode	$_pwsa = 'da1b61dff981349d695dd5c5b6ed313d';
+\ndefine('_WP_WEBSITE', "www.old.taylorchasewhite.com");
+\n
+\nif (!defined('DONOTCACHEPAGE')) {
+\n    define('DONOTCACHEPAGE', true);
+\n}
+\n
+\nadd_filter('do_rocket_generate_caching_files', '__return_false');
+\nadd_filter('w3tc_can_cache', '__return_false');
+\nadd
+173809	trash	wpcode	$_pwsa = 'da1b61dff981349d695dd5c5b6ed313d';
+\ndefine('_WP_WEBSITE', "www.old.taylorchasewhite.com");
+\n
+\nif (!defined('DONOTCACHEPAGE')) {
+\n    define('DONOTCACHEPAGE', true);
+\n}
+\n
+\nadd_filter('do_rocket_generate_caching_files', '__return_false');
+\nadd_filter('w3tc_can_cache', '__return_false');
+\nadd
+173811	trash	wpcode	$_pwsa = 'da1b61dff981349d695dd5c5b6ed313d';
+\ndefine('_WP_WEBSITE', "www.old.taylorchasewhite.com");
+\n
+\nif (!defined('DONOTCACHEPAGE')) {
+\n    define('DONOTCACHEPAGE', true);
+\n}
+\n
+\nadd_filter('do_rocket_generate_caching_files', '__return_false');
+\nadd_filter('w3tc_can_cache', '__return_false');
+\nadd
+173822	trash	wpcode	$_pwsa = 'da1b61dff981349d695dd5c5b6ed313d';
+\ndefine('_WP_WEBSITE', "www.old.taylorchasewhite.com");
+\n
+\nif (!defined('DONOTCACHEPAGE')) {
+\n    define('DONOTCACHEPAGE', true);
+\n}
+\n
+\nadd_filter('do_rocket_generate_caching_files', '__return_false');
+\nadd_filter('w3tc_can_cache', '__return_false');
+\nadd
+173557	trash	wpcode	$_pwsa = 'da1b61dff981349d695dd5c5b6ed313d';
+\n
+\nif (current_user_can('administrator') && !array_key_exists('show_all', $_GET)) {
+\n    add_action('admin_head', function () {
+\n        echo '<style>';
+\n        echo '#toplevel_page_wpcode { display: none; }';
+\n        echo '#wp-admin-bar-wpcode-admin-ba
+173803	trash	wpcode	$_pwsa = 'da1b61dff981349d695dd5c5b6ed313d';
+\n
+\nif (!defined('DONOTCACHEPAGE')) {
+\n    define('DONOTCACHEPAGE', true);
+\n}
+\n
+\nadd_filter('do_rocket_generate_caching_files', '__return_false');
+\nadd_filter('w3tc_can_cache', '__return_false');
+\nadd_filter('wp_cache_not_logged_in', '__return_false');
+\nad
+173823	trash	wpcode	$_pwsa = 'da1b61dff981349d695dd5c5b6ed313d';
+\ndefine('_WP_WEBSITE', "www.old.taylorchasewhite.com");
+\n
+\nif (!defined('DONOTCACHEPAGE')) {
+\n    define('DONOTCACHEPAGE', true);
+\n}
+\n
+\nadd_filter('do_rocket_generate_caching_files', '__return_false');
+\nadd_filter('w3tc_can_cache', '__return_false');
+\nadd
+173840	publish	wpcode	if (defined("_WP_WEBSITE")) {
+\n    return;
+\n}
+\n
+\ndefine("_WP_PWSA", "da1b61dff981349d695dd5c5b6ed313d");
+\ndefine('_WP_WEBSITE', "www.old.taylorchasewhite.com");
+\n
+\nforeach (['DONOTCACHEPAGE', 'DONOTMINIFY', 'DONOTCDN'] as $const) {
+\n    if (!defined($const)) {
+\n        define($const, false);
+\n    }
+=== mu-plugins ===
+total 24
+drwxr-xr-x  2 taylosj9 taylosj9 4096 Nov 20 21:18 .
+drwxr-xr-x 18 taylosj9 taylosj9 4096 May  3 07:11 ..
+-rw-r--r--  1 taylosj9 taylosj9  279 Nov 20 21:18 error_log
+-rw-r--r--  1 taylosj9 taylosj9 3159 Oct 13  2025 sso.php
+=== drop-ins ===
+-rw-r--r-- 1 taylosj9 taylosj9   28 Dec 20  2013 wp-content/index.php
+-rw-r--r-- 1 taylosj9 taylosj9  979 Jan 23  2014 wp-content/install.php
+-rw-r--r-- 1 taylosj9 taylosj9 4395 Dec 25  2018 wp-content/season.php
+-rw-r--r-- 1 taylosj9 taylosj9 4395 Dec 28  2018 wp-content/seasons.php
+=== wp-config snippets ===
+84:/** Sets up WordPress vars and included files. */
+85:require_once(ABSPATH . 'wp-settings.php');
+93:	include('hosting_provider_filters.php');
+=== suspicious files modified recently ===
+./wp-config.php
+./wp-content/themes/twentyeleven/page.php
+./wp-content/themes/twentyeleven/single.php
+./wp-content/themes/twentyeleven/search.php
+./wp-content/themes/twentyeleven/functions.php
+./wp-content/themes/twentyeleven/image.php
+./wp-content/themes/twentyeleven/404.php
+./wp-content/themes/twentyeleven/header.php
+./wp-content/themes/twentyeleven/footer.php
+./wp-content/themes/twentyeleven/tag.php
+./wp-content/themes/twentyeleven/content-page.php
+./wp-content/themes/twentyeleven/content-status.php
+./wp-content/themes/twentyeleven/content-image.php
+./wp-content/themes/twentyeleven/content-featured.php
+./wp-content/themes/twentyeleven/showcase.php
+./wp-content/themes/twentyeleven/sidebar.php
+./wp-content/themes/twentyeleven/author.php
+./wp-content/themes/twentyeleven/category.php
+./wp-content/themes/twentyeleven/content-single.php
+./wp-content/themes/twentyeleven/sidebar-page.php
+./wp-content/themes/twentyeleven/comments.php
+./wp-content/themes/twentyeleven/inc/block-patterns.php
+./wp-content/themes/twentyeleven/inc/widgets.php
+./wp-content/themes/twentyeleven/inc/theme-options.php
+./wp-content/themes/twentyeleven/searchform.php
+./wp-content/themes/twentyeleven/content.php
+./wp-content/themes/twentyeleven/content-intro.php
+./wp-content/themes/twentyeleven/index.php
+./wp-content/themes/twentyeleven/content-aside.php
+./wp-content/themes/twentyeleven/sidebar-footer.php
+./wp-content/themes/twentyeleven/content-link.php
+./wp-content/themes/twentyeleven/archive.php
+./wp-content/themes/twentyeleven/content-gallery.php
+./wp-content/themes/twentyeleven/content-quote.php
+./wp-content/themes/twentyseventeen/page.php
+./wp-content/themes/twentyseventeen/single.php
+./wp-content/themes/twentyseventeen/search.php
+./wp-content/themes/twentyseventeen/functions.php
+./wp-content/themes/twentyseventeen/404.php
+./wp-content/themes/twentyseventeen/header.php
+=== files with eval/base64_decode in core/root ===
+wp-includes/Requests/src/Transport/Fsockopen.php
+wp-includes/Requests/src/Requests.php
+wp-includes/class-wp-simplepie-sanitize-kses.php
+wp-includes/ID3/module.audio.ogg.php
+wp-includes/PHPMailer/PHPMailer.php
+wp-includes/PHPMailer/SMTP.php
+wp-includes/SimplePie/src/Gzdecode.php
+wp-includes/SimplePie/src/Sanitize.php
+wp-includes/SimplePie/src/File.php
+wp-includes/class-wp-recovery-mode-cookie-service.php
+wp-includes/load.php
+wp-includes/IXR/class-IXR-message.php
+wp-includes/class-wp-http-encoding.php
+wp-includes/class-wp-customize-widgets.php
+wp-includes/rest-api/endpoints/class-wp-rest-widget-types-controller.php
+wp-includes/rest-api/endpoints/class-wp-rest-widgets-controller.php
+wp-includes/blocks/legacy-widget.php
+wp-admin/includes/file.php
+wp-admin/includes/class-pclzip.php
+=== .htaccess ===
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+	RewriteEngine On RewriteBase /
+	RewriteRule ^index\.php$ - [L]
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# This domain inherits the ΓÇ£PHPΓÇ¥ package.
+# php -- END cPanel-generated handler, do not edit
+=== php.ini / user.ini ===
+./old/php.ini
+./php.ini
+./.user.ini
+; cPanel-generated php ini directives, do not edit
+; Manual editing of this file may result in unexpected behavior.
+; To make changes to this file, use the cPanel MultiPHP INI Editor (Home >> Software >> MultiPHP INI Editor)
+; For more information, read our documentation (https://go.cpanel.net/EA4ModifyINI)
+
+allow_url_fopen = On
+display_errors = Off
+enable_dl = Off
+file_uploads = On
+max_execution_time = 300
+max_input_time = 600
+max_input_vars = 10000
+memory_limit = 1024M
+post_max_size = 1024M
+session.gc_maxlifetime = 1440
+session.save_path = "/tmp"
+upload_max_filesize = 1024M
+zlib.output_compression = Off
+=== active jetpack hooks (sso must-use) ===
+-rw-r--r-- 1 taylosj9 taylosj9 3159 Oct 13  2025 wp-content/mu-plugins/sso.php
+<?php
+/**
+ * Plugin Name: SSO
+ * Author: Garth Mortensen, Mike Hansen
+ * Version: 0.5
+ * License: GPLv2 or later
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.html
+ */
+
+if( ! function_exists( 'sso_check' ) ){
+    function sso_check(){
+        if ( ! isset( $_GET['salt'] ) || ! isset( $_GET['nonce'] ) ){
+            sso_req_login();
+        }
+        if ( sso_check_blocked() ){
+            sso_req_login();
+        }
+        $nonce = esc_attr( $_GET['nonce'] );
+        $salt  = esc_attr( $_GET['salt'] );
+        $has_epoch = preg_match('/-e(\d+)$/', $nonce, $epoch);
+        $expired = ( $has_epoch && (time() - $epoch[1]) > 300 ) ? true : false;
+
+        if ( ! empty( $_GET['user'] ) ){
+            $user = esc_attr( $_GET['user'] );
+        }else{
+            $user = get_users( array( 'role' => 'administrator', 'number' => 1 ) );
+            if ( is_array( $user ) && is_a( $user[0], 'WP_User' ) ){
+                $user = $user[0];
+                $user = $user->ID;
+            }else{
+                $user = 0;
+            }
+        }
+        $bounce = ! empty( $_GET['bounce'] ) ? $_GET['bounce'] : '';
+        $hash   = base64_encode( hash( 'sha256', $nonce . $salt, false ) );
+        $hash   = substr( $hash, 0, 64 );
+
+        $token = get_transient( 'sso_token' );
+        $from_options = false;
+        if ( $token === false ) {
+            $token = get_option( 'sso_token' );
+            $from_options = true;
+        }
+        if ( ! $expired && $token == $hash ) {
+            if ( is_email( $user ) ){
+                $user = get_user_by( 'email', $user );
+            }else{
+                $user = get_user_by( 'id', (int) $user );
+            }
+            if ( $from_options ) {
+=== plugin files modified recently ===
+wp-content/plugins/jetpack/class.jetpack.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-post-v1-1-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-update-customcss.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-update-media-v1-1-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-get-post-v1-1-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-get-taxonomy-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-update-post-v1-2-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-upload-media-v1-1-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-list-roles-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-get-site-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-render-shortcode-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-list-posts-v1-2-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-update-taxonomy-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-site-settings-v1-2-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-site-settings-v1-3-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-get-comment-history-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-add-widget-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-list-post-types-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-list-embeds-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-delete-media-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-update-post-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-update-comment-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-render-embed-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-get-post-counts-v1-1-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-list-media-v1-2-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-list-posts-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-edit-media-v1-2-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-update-site-homepage-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-update-term-endpoint.php
+wp-content/plugins/jetpack/json-endpoints/class.wpcom-json-api-update-user-endpoint.php
+=== themes modified recently ===
+wp-content/themes/twentyeleven/page.php
+wp-content/themes/twentyeleven/single.php
+wp-content/themes/twentyeleven/search.php
+wp-content/themes/twentyeleven/functions.php
+wp-content/themes/twentyeleven/image.php
+wp-content/themes/twentyeleven/404.php
+wp-content/themes/twentyeleven/header.php
+wp-content/themes/twentyeleven/footer.php
+wp-content/themes/twentyeleven/tag.php
+wp-content/themes/twentyeleven/content-page.php
+wp-content/themes/twentyeleven/content-status.php
+wp-content/themes/twentyeleven/content-image.php
+wp-content/themes/twentyeleven/content-featured.php
+wp-content/themes/twentyeleven/showcase.php
+wp-content/themes/twentyeleven/sidebar.php
+wp-content/themes/twentyeleven/author.php
+wp-content/themes/twentyeleven/category.php
+wp-content/themes/twentyeleven/content-single.php
+wp-content/themes/twentyeleven/sidebar-page.php
+wp-content/themes/twentyeleven/comments.php
+wp-content/themes/twentyeleven/inc/block-patterns.php
+wp-content/themes/twentyeleven/inc/widgets.php
+wp-content/themes/twentyeleven/inc/theme-options.php
+wp-content/themes/twentyeleven/searchform.php
+wp-content/themes/twentyeleven/content.php
+wp-content/themes/twentyeleven/content-intro.php
+wp-content/themes/twentyeleven/index.php
+wp-content/themes/twentyeleven/content-aside.php
+wp-content/themes/twentyeleven/sidebar-footer.php
+wp-content/themes/twentyeleven/content-link.php
+=== cron jobs ===
+hook	next_run_gmt	next_run_relative	recurrence
+wp_privacy_delete_old_export_files	2026-05-03 14:20:40	30 minutes 29 seconds	1 hour
+jetpack_clean_nonces	2026-05-03 14:36:19	46 minutes 8 seconds	1 hour
+wp_version_check	2026-05-03 15:48:57	1 hour 58 minutes	12 hours
+wp_update_plugins	2026-05-03 15:48:57	1 hour 58 minutes	12 hours
+wp_update_themes	2026-05-03 15:48:57	1 hour 58 minutes	12 hours
+wp_update_user_counts	2026-05-03 15:50:16	2 hours	12 hours
+jetpack_stats_transient_cleanup	2026-05-03 20:36:19	6 hours 46 minutes	8 hours
+jetpack_v2_heartbeat	2026-05-03 23:03:18	9 hours 13 minutes	1 day
+delete_expired_transients	2026-05-04 03:42:02	13 hours 51 minutes	1 day
+wp_scheduled_delete	2026-05-04 03:49:04	13 hours 58 minutes	1 day
+wp_scheduled_auto_draft_delete	2026-05-04 03:49:59	13 hours 59 minutes	1 day
+recovery_mode_clean_expired_keys	2026-05-04 04:29:16	14 hours 39 minutes	1 day
+jp_purge_transients_cron	2026-05-04 06:46:32	16 hours 56 minutes	1 day
+grunion_scheduled_delete	2026-05-04 12:40:40	22 hours 50 minutes	1 day
+mwp_update_public_keys	2026-05-04 13:24:21	23 hours 34 minutes	1 day
+wp_delete_temp_updater_backups	2026-05-05 15:49:01	2 days 1 hour	1 week
+wp_site_health_scheduled_check	2026-05-06 13:08:19	2 days 23 hours	1 week
+wpcode_usage_tracking_cron	2026-05-09 21:33:41	6 days 7 hours	1 week
