@@ -1,7 +1,8 @@
-import { getPosts } from "@/lib/wp";
+import { getCategoryIdsBySlugs, getPosts } from "@/lib/wp";
 import { ArchiveView } from "@/components/archive-view";
 import { HomeHero } from "@/components/home-hero";
 import { quoteForSeed } from "@/lib/quotes";
+import { OURGOV_CATEGORY_SLUGS } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
@@ -9,7 +10,8 @@ export const revalidate = 3600;
 export default async function HomePage() {
   let result;
   try {
-    result = await getPosts({ perPage: 12 });
+    const ourgovIds = await getCategoryIdsBySlugs(OURGOV_CATEGORY_SLUGS);
+    result = await getPosts({ perPage: 12, categoriesExclude: ourgovIds });
   } catch (err) {
     console.warn("HomePage: failed to fetch posts:", err);
     result = { items: [], totalPages: 1, total: 0, page: 1, perPage: 12 };

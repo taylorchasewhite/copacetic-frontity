@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { getPosts } from "@/lib/wp";
+import { getCategoryIdsBySlugs, getPosts } from "@/lib/wp";
 import { ArchiveView } from "@/components/archive-view";
+import { OURGOV_CATEGORY_SLUGS } from "@/lib/site";
 
 export const revalidate = 3600;
 
@@ -13,7 +14,12 @@ export default async function HomePagedPage({ params }: Props) {
   const page = Number(pageStr);
   if (!Number.isInteger(page) || page < 2) notFound();
 
-  const result = await getPosts({ perPage: 12, page });
+  const ourgovIds = await getCategoryIdsBySlugs(OURGOV_CATEGORY_SLUGS);
+  const result = await getPosts({
+    perPage: 12,
+    page,
+    categoriesExclude: ourgovIds,
+  });
   if (result.items.length === 0) notFound();
 
   return <ArchiveView result={result} basePath="" />;

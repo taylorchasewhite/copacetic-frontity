@@ -79,12 +79,16 @@ export async function getPosts({
   page = 1,
   perPage = 10,
   category,
+  categories,
+  categoriesExclude,
   tag,
   search,
 }: {
   page?: number;
   perPage?: number;
   category?: number;
+  categories?: number[];
+  categoriesExclude?: number[];
   tag?: number;
   search?: string;
 } = {}): Promise<PaginatedResult<WPPost>> {
@@ -92,7 +96,12 @@ export async function getPosts({
     page,
     per_page: perPage,
     _embed: 1,
-    categories: category,
+    categories: categories?.length
+      ? categories.join(",")
+      : category,
+    categories_exclude: categoriesExclude?.length
+      ? categoriesExclude.join(",")
+      : undefined,
     tags: tag,
     search,
   });
@@ -118,6 +127,27 @@ export async function getPageBySlug(slug: string): Promise<WPPage | null> {
 export async function getCategoryBySlug(slug: string): Promise<WPTerm | null> {
   const { data } = await wpFetch<WPTerm[]>("/categories", { slug });
   return data[0] ?? null;
+}
+
+/**
+ * Resolve several category slugs to their numeric IDs in a single WP
+ * REST call. Missing slugs are silently skipped. Used for OurGov
+ * filtering on home/blog and for the `/ourgov` aggregator page.
+ */
+export async function getCategoryIdsBySlugs(
+  slugs: readonly string[]
+): Promise<number[]> {
+  if (slugs.length === 0) return [];
+  try {
+    const { data } = await wpFetch<WPTerm[]>("/categories", {
+      slug: slugs.join(","),
+      per_page: 100,
+    });
+    return data.map((t) => t.id);
+  } catch (err) {
+    console.warn("getCategoryIdsBySlugs failed:", err);
+    return [];
+  }
 }
 
 export async function getTagBySlug(slug: string): Promise<WPTerm | null> {

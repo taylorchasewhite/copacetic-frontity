@@ -40,6 +40,12 @@ html[data-mode="vintage"] aside.fixed {
   display: none !important;
 }
 
+/* Hide the mobile hamburger drawer trigger; vintage mode uses the
+   header "site map" link and the footer page list instead. */
+html[data-mode="vintage"] [data-mobile-menu-trigger] {
+  display: none !important;
+}
+
 /* Drop the side-nav offset on main and footer. */
 html[data-mode="vintage"] main,
 html[data-mode="vintage"] footer {

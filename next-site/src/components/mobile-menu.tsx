@@ -33,6 +33,7 @@ export function MobileMenu() {
       <button
         type="button"
         aria-label="Open menu"
+        data-mobile-menu-trigger
         onClick={() => setOpen(true)}
         className="mr-3 inline-flex items-center justify-center p-2 text-primary-700 hover:text-accent-500 md:hidden"
       >

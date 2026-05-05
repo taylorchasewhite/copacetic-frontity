@@ -119,7 +119,13 @@ export function TopSearch() {
           const next = !mobileOpen;
           setMobileOpen(next);
           if (next) {
-            requestAnimationFrame(() => inputRef.current?.focus());
+            // Two RAFs ensure the panel transitions from display:none to flex
+            // *before* we try to focus its input — focus on a hidden element
+            // is a no-op on iOS Safari, which is why the mobile search felt
+            // broken.
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() => inputRef.current?.focus())
+            );
           }
         }}
         className="inline-flex h-9 w-9 items-center justify-center rounded-full text-primary-600 hover:bg-primary-50 hover:text-accent-600 sm:hidden"
@@ -135,7 +141,7 @@ export function TopSearch() {
       <div
         className={`${
           mobileOpen ? "flex" : "hidden"
-        } absolute left-0 right-0 top-full z-[85] mt-2 flex-col gap-2 sm:relative sm:top-auto sm:mt-0 sm:flex sm:flex-1`}
+        } absolute left-0 right-0 top-full z-[95] mt-2 flex-col gap-2 sm:relative sm:top-auto sm:mt-0 sm:flex sm:flex-1 sm:z-auto`}
       >
         <form
           role="search"
@@ -169,7 +175,7 @@ export function TopSearch() {
           <div
             role="listbox"
             data-search-results
-            className="absolute left-0 right-0 top-full z-[85] mt-2 max-h-[70vh] overflow-y-auto rounded-md border border-primary-100 bg-white py-2 shadow-xl"
+            className="absolute left-0 right-0 top-full z-[95] mt-2 max-h-[70vh] overflow-y-auto rounded-md border border-primary-100 bg-white py-2 shadow-xl"
           >
           {loading && !hasResults && (
             <div className="px-4 py-3 text-sm text-primary-500">Searching…</div>

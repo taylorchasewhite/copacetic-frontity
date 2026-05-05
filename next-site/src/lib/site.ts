@@ -9,6 +9,7 @@ import {
   FaProjectDiagram,
   FaTools,
   FaUser,
+  FaLandmark,
 } from "react-icons/fa";
 
 export interface MenuItem {
@@ -18,6 +19,13 @@ export interface MenuItem {
   children?: MenuItem[];
 }
 
+/**
+ * Category slugs whose posts are part of the OurGov body of work. They
+ * are excluded from the home/blog feed and surfaced through a dedicated
+ * `/ourgov` aggregator page so the OurGov material stays grouped.
+ */
+export const OURGOV_CATEGORY_SLUGS = ["features", "announcements"] as const;
+
 export const siteConfig = {
   title: "Taylor Chase White",
   description: "Personal blog of Taylor Chase White.",
@@ -25,8 +33,8 @@ export const siteConfig = {
   menu: [
     { label: "Home", href: "/", icon: FaHome },
     { label: "Blog", href: "/category/blog", icon: FaPenNib },
-    { label: "Features", href: "/category/features", icon: FaStar },
     { label: "Philosophy", href: "/category/philosophy", icon: FaBookOpen },
+    { label: "OurGov", href: "/ourgov", icon: FaLandmark },
     { label: "Projects", href: "/projects", icon: FaProjectDiagram },
     { label: "Workshop", href: "/workshop", icon: FaTools },
     { label: "About", href: "/about", icon: FaUser },
