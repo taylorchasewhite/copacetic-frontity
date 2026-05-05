@@ -16,7 +16,10 @@ interface Props {
 export function AboutTimeline({ entries }: Props) {
   const [index, setIndex] = useState(0);
   const current = entries[index];
-  const formatted = new Date(current.date).toLocaleDateString(undefined, {
+  // Pin the locale so server-rendered HTML matches the client; using
+  // `undefined` here causes a React #418 hydration mismatch when the
+  // server and browser locales differ.
+  const formatted = new Date(current.date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
   });
@@ -47,34 +50,30 @@ export function AboutTimeline({ entries }: Props) {
               min={0}
               max={max}
               step={1}
-              value={max - index}
-              onChange={(e) => setIndex(max - Number(e.target.value))}
-              aria-label="Scrub between about-me versions over time"
+              value={index}
+              onChange={(e) => setIndex(Number(e.target.value))}
+              aria-label="Drag right to read older about-me versions"
               className="w-full accent-accent-500"
             />
             <ol className="flex justify-between text-xs text-primary-500">
-              {[...entries]
-                .slice()
-                .reverse()
-                .map((entry, i) => {
-                  const entryIndex = max - i;
-                  const active = entryIndex === index;
-                  return (
-                    <li key={entry.date}>
-                      <button
-                        type="button"
-                        onClick={() => setIndex(entryIndex)}
-                        className={
-                          active
-                            ? "font-semibold text-accent-600 underline"
-                            : "hover:text-accent-600 hover:underline"
-                        }
-                      >
-                        {entry.label}
-                      </button>
-                    </li>
-                  );
-                })}
+              {entries.map((entry, entryIndex) => {
+                const active = entryIndex === index;
+                return (
+                  <li key={entry.date}>
+                    <button
+                      type="button"
+                      onClick={() => setIndex(entryIndex)}
+                      className={
+                        active
+                          ? "font-semibold text-accent-600 underline"
+                          : "hover:text-accent-600 hover:underline"
+                      }
+                    >
+                      {entry.label}
+                    </button>
+                  </li>
+                );
+              })}
             </ol>
           </div>
         )}

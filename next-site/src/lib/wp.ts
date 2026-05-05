@@ -2,6 +2,7 @@ import type {
   PaginatedResult,
   WPPage,
   WPPost,
+  WPRevision,
   WPTerm,
 } from "./wp-types";
 
@@ -15,6 +16,19 @@ const DEFAULT_REVALIDATE = 60 * 60; // 1 hour
 interface FetchOptions {
   revalidate?: number;
   tags?: string[];
+  /**
+   * If true, send the WP application-password Basic auth header. Used
+   * for endpoints that aren't publicly readable (e.g. /pages/{id}/revisions).
+   */
+  authed?: boolean;
+}
+
+function authHeader(): Record<string, string> {
+  const user = process.env.WP_AUTH_USER;
+  const pass = process.env.WP_AUTH_APP_PASSWORD;
+  if (!user || !pass) return {};
+  const token = Buffer.from(`${user}:${pass}`).toString("base64");
+  return { Authorization: `Basic ${token}` };
 }
 
 async function wpFetch<T>(
@@ -28,11 +42,14 @@ async function wpFetch<T>(
     url.searchParams.set(k, String(v));
   }
 
+  const headers: Record<string, string> = opts.authed ? authHeader() : {};
+
   // Try the cached fetch first. If WordPress hands back HTML (caching layer,
   // WAF, maintenance page, malware redirect, etc.) we retry once with cache
   // disabled so a single bad response can't poison the ISR cache for the
   // full revalidate window.
   let res = await fetch(url, {
+    headers,
     next: {
       revalidate: opts.revalidate ?? DEFAULT_REVALIDATE,
       tags: opts.tags,
@@ -41,7 +58,7 @@ async function wpFetch<T>(
 
   let contentType = res.headers.get("content-type") ?? "";
   if (res.ok && !contentType.includes("application/json")) {
-    res = await fetch(url, { cache: "no-store" });
+    res = await fetch(url, { headers, cache: "no-store" });
     contentType = res.headers.get("content-type") ?? "";
   }
 
@@ -163,4 +180,29 @@ export async function getAllPostSlugs(): Promise<string[]> {
     _fields: "slug",
   });
   return data.map((p) => p.slug);
+}
+
+/**
+ * Fetch the full revision history of a WP page. Revisions are protected
+ * by WordPress and require an authenticated request (we use an
+ * application password via Basic Auth). Returns newest-first.
+ *
+ * If the request fails (no creds, network, etc.) we return an empty
+ * array so callers can fall back gracefully.
+ */
+export async function getPageRevisions(
+  pageId: number
+): Promise<WPRevision[]> {
+  try {
+    const { data } = await wpFetch<WPRevision[]>(
+      `/pages/${pageId}/revisions`,
+      { per_page: 100 },
+      { authed: true }
+    );
+    // WP returns newest-first already, but sort defensively.
+    return [...data].sort((a, b) => (a.date < b.date ? 1 : -1));
+  } catch (err) {
+    console.warn(`getPageRevisions(${pageId}) failed:`, err);
+    return [];
+  }
 }

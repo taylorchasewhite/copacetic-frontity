@@ -65,6 +65,24 @@ export interface WPPost {
 
 export interface WPPage extends WPPost {}
 
+/**
+ * A single WordPress revision returned by `/pages/{id}/revisions` or
+ * `/posts/{id}/revisions`. Revisions are essentially trimmed-down
+ * snapshots of the parent post/page; they include enough fields to
+ * render historical content but lack things like categories.
+ */
+export interface WPRevision {
+  id: number;
+  parent: number;
+  date: string;
+  modified: string;
+  slug: string;
+  title: WPRendered;
+  content: WPRendered;
+  excerpt: WPRendered;
+  author: number;
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;
