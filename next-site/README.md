@@ -36,6 +36,15 @@ route by exporting `revalidate` from the route file.
 This project deploys to Vercel as-is. Set `WP_API_URL` and
 `NEXT_PUBLIC_SITE_URL` in the Vercel project settings.
 
+### Images
+
+Next.js image optimization is disabled in `next.config.mjs`. Images load
+directly from their source (usually WordPress), avoiding Vercel's
+`OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED` (HTTP 402) when its image
+optimization allowance is exhausted. `next/image` still provides layout
+dimensions and lazy loading, but does not generate optimized variants.
+An optimized-first fallback would still make the initial failing request.
+
 ## Migration status
 
 | Area               | Status           |

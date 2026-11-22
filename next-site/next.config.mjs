@@ -10,6 +10,7 @@ const nextConfig = {
   // sibling Frontity lockfile.
   outputFileTracingRoot: __dirname,
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "**.taylorchasewhite.com" },
       { protocol: "https", hostname: "taylorchasewhite.com" },
