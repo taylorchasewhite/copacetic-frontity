@@ -2,10 +2,16 @@
 /**
  * Plugin Name: Atari Homebrew Player
  * Description: Play the three original cartridges on the Atari 2600 homebrew article.
- * Version: 1.0.0
+ * Version: 1.1.1
  */
 
 defined( 'ABSPATH' ) || exit;
+
+add_action( 'wp_enqueue_scripts', static function () {
+	if ( is_single( 'atari-2600-homebrew-programming' ) ) {
+		wp_enqueue_style( 'atari-homebrew', plugins_url( 'arcade.css', __FILE__ ), array(), '1.1.1' );
+	}
+} );
 
 add_filter( 'the_content', static function ( $content ) {
 	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
@@ -15,7 +21,8 @@ add_filter( 'the_content', static function ( $content ) {
 	}
 
 	$player = esc_url( plugins_url( 'play.html', __FILE__ ) );
-	return '<details><summary><strong>Play the original Atari cartridges</strong></summary>
+	return '<details open class="atari-arcade">
+		<summary><span>Homebrew arcade</span>Play the original Atari cartridges</summary>
 		<form method="get" action="' . $player . '" target="atari-homebrew-screen">
 			<label>Cartridge <select name="game">
 				<option value="super-step-bros">Super Step Bros.</option>
@@ -25,8 +32,8 @@ add_filter( 'the_content', static function ( $content ) {
 			<button type="submit">Play game</button>
 			<a href="about:blank" target="atari-homebrew-screen">Stop game</a>
 		</form>
+		<noscript>Enable JavaScript to play these cartridges.</noscript>
 		<iframe name="atari-homebrew-screen" title="Atari 2600 emulator" allow="autoplay; fullscreen; gamepad"
-			allowfullscreen style="width:100%;height:min(680px,calc(76vw + 170px));border:0"
-			srcdoc="<p>Choose a cartridge and press Play game.</p>"></iframe>
+			allowfullscreen></iframe>
 	</details>' . $content;
 } );

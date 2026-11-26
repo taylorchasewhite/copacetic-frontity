@@ -41,7 +41,10 @@ its `/ourgov` page and existing feed filtering remain available unchanged.
 ## Atari homebrew
 
 The [Atari homebrew article](https://taylorchasewhite.com/atari-2600-homebrew-programming)
-mounts the emulator only when a reader chooses a game. The three 4 KiB
+opens the cartridge picker by default and loads the emulator only when a reader
+presses **Play game**. The picker uses the same `public/atari/arcade.css` on
+both versions of the blog; the project video is at the end of the WordPress post.
+The three 4 KiB
 cartridges in `public/atari/roms` and their DASM sources in `content/atari`
 come from the author's [2015 archive](https://www.old.taylorchasewhite.com/wp-content/uploads/Atari-2600-Roms-Source-Code.zip).
 Original credits are preserved; the other students' projects are not included.

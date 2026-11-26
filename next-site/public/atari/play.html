@@ -25,6 +25,11 @@
   </footer>
   <script src="javatari/javatari.js"></script>
   <script>
+    const launcher = window.frameElement?.closest(".atari-arcade");
+    if (launcher) {
+      launcher.setAttribute("data-playing", "");
+      window.addEventListener("pagehide", () => launcher.removeAttribute("data-playing"));
+    }
     const games = new Map([
       ["super-step-bros", "Super Step Bros."],
       ["skateboard-steve", "The Adventures of Grumpy Gramps & Skateboard Steve"],
