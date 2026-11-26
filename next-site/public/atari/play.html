@@ -36,7 +36,7 @@
       ["skateboard-steve", "The Adventures of Grumpy Gramps & Skateboard Steve"],
       ["simon-says", "Simon Says"],
       ["super-step-bros-revamped", "Super Step Bros.: Switchback Rescue (Revamped)"],
-      ["skateboard-steve-revamped", "Skateboard Steve: Flowerpot Alley (Revamped)"],
+      ["skateboard-steve-revamped", "Skateboard Steve: Gramps' Backyard (Revamped)"],
       ["simon-says-revamped", "Simon Says: Echo (Revamped)"],
     ]);
     const id = new URLSearchParams(location.search).get("game");
@@ -50,8 +50,8 @@
       } else {
         document.title = games.get(id) + " | Atari 2600";
         const guides = {
-          "super-step-bros-revamped": "Help Bo cross the canyon. Walk with Left/Right and jump with Up or fire (Space). Press Down to call Jo for a rock, or have a partner steer Jo with F/H and drop with A. Stay out from under falling rocks. Build five piers, then jump to the flag.",
-          "skateboard-steve-revamped": "Skate left or right and hold fire (Space) to push faster. Dodge Gramps' flowerpots: staying on the board earns points, and a clean dodge earns two more. A second player can move Gramps with F/H and drop with G or A; after three idle seconds he plays himself. Three hits end the run. Press P1 fire or Game Reset to skate again.",
+          "super-step-bros-revamped": "Get Bo to the flag in three canyons. Climb east on Sunset Stair, cross the dip in Split Saddle, then head west on Westward Crown. Walk with Left/Right and jump with Up or fire (Space). Call Jo with Down, or have a partner steer with F/H and drop rocks with A. Hearts carry to the next canyon. After OUT, fire retries that canyon; Game Reset starts back at RIM 1.",
+          "skateboard-steve-revamped": "Gramps wants Steve out of his backyard! Skate with Left/Right; hold fire (Space) to push faster. Dodge four throws to reach the next setting: apples by the picket fence, flowerpots in the greenhouse garden, then tennis balls beside the pool. The route loops with your score and hearts intact. A partner can move Gramps on the deck with F/H and throw with G or A. Three hits end the run; P1 fire or Game Reset starts over.",
           "simon-says-revamped": "Space starts solo; A starts a two-player duel. Watch the four pads and repeat their directions, releasing between notes. Solo grows to eight notes. In a duel, blue plays first (arrows), amber second (T/F/G/H); fewest mistakes wins, then fastest time. The result strip shows the winner's color, white for a tie or red for a solo miss. Game Reset returns to the lobby.",
         };
         if (guides[id]) {
@@ -64,7 +64,8 @@
         Javatari.CARTRIDGE_SHOW_RECENT = false;
         Javatari.SCREEN_FULLSCREEN_MODE = 0;
         Javatari.AUTO_POWER_ON_DELAY = 0;
-        Javatari.CARTRIDGE_URL = "roms/" + id + ".bin";
+        const newLevels = id === "super-step-bros-revamped" || id === "skateboard-steve-revamped";
+        Javatari.CARTRIDGE_URL = "roms/" + id + ".bin" + (newLevels ? "?v=2.1.0" : "");
         Javatari.start();
         statusLine.textContent = (id === "simon-says" ? "Use Game Reset on the console to start. " : "")
           + "Click or tap the screen for controls. Player 1: arrow keys and Space. Player 2: T/F/G/H and A.";

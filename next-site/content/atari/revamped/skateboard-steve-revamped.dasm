@@ -1,9 +1,10 @@
-; GRUMPY GRAMPS & SKATEBOARD STEVE: FLOWERPOT ALLEY
+; GRUMPY GRAMPS & SKATEBOARD STEVE: GRAMPS' BACKYARD
 ; A new NTSC cartridge for Taylor White / Burt Haworth's 2014 VCS game.
 ; Left stick: skate left/right, hold fire to push faster.
-; Right stick: walk the balcony; down or fire drops a pot. Leave the
+; Right stick: walk Gramps' deck; down or fire throws an object. Leave the
 ; controller idle for three seconds and Gramps takes over again.
 ; Stay upright: +1 per 50 frames, +2 per clean dodge, three hearts.
+; Four clean dodges open the next backyard; the three-yard route loops.
 ; At WIPEOUT use left fire to ride again; console Reset starts a new run.
 
         processor 6502
@@ -52,6 +53,13 @@ heartIndex  ds 1
 hudLeft     ds 5
 hudMid      ds 5
 pots        ds ROWS+7   ; trailing rows clip a departing pot without a branch
+yard        ds 1
+yardDodges  ds 1
+rowMap      ds 2
+nearPosts   ds 1
+farPosts    ds 1
+objectShape ds 1
+objectInk   ds 1
 
         SEG CODE
         ORG $f000
@@ -83,7 +91,7 @@ Frame
         lda grampsX
         jsr Position
         ldx #1
-        lda #28         ; P1's sunset is behind Gramps in TIA priority
+        lda #28         ; P1 is a hanging basket until the deck ends
         jsr Position
         sta WSYNC
         sta HMOVE
@@ -109,7 +117,7 @@ WaitBlank
         sta WSYNC
         sta VBLANK
 
-; 192 visible lines: 20 scoreboard, 32 rooftop, 8 balcony, 120 court, 12 road.
+; 192 visible lines: 20 scoreboard, 32 porch, 8 deck, 120 yard, 12 path.
         sta WSYNC
         lda #$82
         sta COLUBK
@@ -152,22 +160,28 @@ HudDone
         sta PF0
         sta PF1
         sta PF2
+        ldx yard
         sta WSYNC
-        lda #$94
-        sta COLUBK
+        lda YardTicks,x
+        sta PF1
+        jsr TickGap
+        lda DodgeTicks,y
+        sta PF1
         sta WSYNC
-        lda #$18
-        sta COLUBK
+        lda YardTicks,x
+        sta PF1
+        jsr TickGap
+        lda DodgeTicks,y
+        sta PF1
         sta WSYNC       ; 20
         lda #1
         sta CTRLPF
-        lda #$74
+        lda #$26
         sta COLUBK
-        lda #$98
+        lda #$28
         sta COLUPF
-        lda #$08
+        lda #$ff
         sta PF1
-        lda #$40
         sta PF2
         sta WSYNC
         sta WSYNC
@@ -182,21 +196,23 @@ OldLine
         sta GRP0
         lda OldInk,y
         sta COLUP0
-        lda Sundisc,y
+        lda Basket,y
         sta GRP1
-        lda SunInk,y
+        lda BasketInk,y
         sta COLUP1
         sta WSYNC
-        lda Sky,y
+        lda Siding,y
         sta COLUBK
-        lda Cloud,y
+        lda WindowInk,y
+        sta COLUPF
+        lda Shutters,y
         sta PF1
-        lda Vapor,y
+        lda Panes,y
         sta PF2
         iny
         cpy #14
         bne OldLine
-        sta WSYNC       ; 52: copper balcony and its iron rivets
+        sta WSYNC       ; 52: the cap and balusters of Gramps' wooden deck
         lda #0
         sta GRP1
         sta GRP0
@@ -209,9 +225,9 @@ OldLine
         lda #$26
         sta COLUBK
         sta WSYNC
-        lda #$14
+        lda #$d6
         sta COLUBK
-        lda #$3a
+        lda #$24
         sta COLUPF
         lda #$90
         sta PF0
@@ -238,7 +254,7 @@ RiderCoarse
         sta PF0
         sta PF1
         sta PF2
-        sta CXCLR       ; discard any contact between Gramps and the decorative sun
+        sta CXCLR       ; porch decorations do not participate in yard collisions
         sta COLUBK
         sta NUSIZ1      ; lower court reuses both players for Steve and the pot
         lda steveFace
@@ -265,32 +281,54 @@ PotCoarse
         bne CourtInit
         jmp EndCard
 CourtInit
-        lda #$54
+        lda #$9a
         sta COLUBK
-        lda #$32
-        sta COLUPF
-        ldy #0
-        tya
+        ldy pots
+        lda ItemShape,y
+        sta objectShape
+        lda ItemInk,y
+        sta objectInk
+        lda #0
+        sta nearPosts
+        sta farPosts
+        tay
 CourtFirst
-        sta WSYNC       ; first line of pair: players before the first skater pixel
+        sta WSYNC
         sta GRP0
         sty COLUP0
-        ldy pots,x
-        lda PotShape,y
+        lda objectShape
         sta GRP1
-        lda PotInk,y
+        lda objectInk
         sta COLUP1
-        sta WSYNC       ; second: scenery in raster order, then stage Steve
-        lda CourtSky,x
-        sta COLUBK
-        lda CourtInk,x
-        sta COLUPF
-        lda Wall0,x
-        sta PF0
-        lda Wall1,x
+        lda nearPosts
         sta PF1
-        lda Wall2,x
+        ldy pots+1,x
+        lda ItemShape,y
+        sta objectShape
+        lda ItemInk,y
+        sta objectInk
+        lda farPosts    ; replace PF1 after the left side, before its reflection
+        sta PF1
+        txa
+        tay
+        lda (rowMap),y
+        tay
+        lda YardLeft,y
+        sta nearPosts
+        sta WSYNC
+        lda YardSky,y
+        sta COLUBK
+        lda YardInk,y
+        sta COLUPF
+        lda YardEdge,y
+        sta PF0
+        lda nearPosts
+        sta PF1
+        lda YardCenter,y
         sta PF2
+        lda YardRight,y
+        sta farPosts
+        sta PF1
         inx
         cpx #ROWS
         beq Road
@@ -309,12 +347,12 @@ Road
         sty PF0
         sty PF1
         sty PF2
-        lda #$1c
+        lda #$d8
         sta COLUBK
         sta WSYNC
-        lda #$06
+        lda #$c6
         sta COLUBK
-        lda #$82
+        lda #$d2
         sta COLUPF
         lda #$40
         sta PF0
@@ -325,17 +363,17 @@ Road
         sta WSYNC
         sta WSYNC
         sta WSYNC
-        lda #$80
+        lda #$d4
         sta COLUBK
         sta WSYNC
-        lda #$84
+        lda #$24
         sta COLUBK
         sty PF0
         sty PF1
         sty PF2
         sta WSYNC
         sta WSYNC
-        lda #$12
+        lda #$36
         sta COLUPF
         lda #$e0
         sta PF1
@@ -446,8 +484,18 @@ Coarse
         sta RESP0,x
         rts
 
+TickGap
+        ldy #4
+TickWait
+        dey
+        bne TickWait
+        ldy yardDodges
+        rts
+
 NewRound
         lda #0
+        sta yard
+        sta yardDodges
         ldx #fireLock-lives
 ClearRound
         sta lives,x
@@ -467,6 +515,15 @@ ClearRound
         sta potY
         lda #$bd
         sta seed
+        jsr SelectYard
+        rts
+
+SelectYard
+        ldx yard
+        lda MapOffsets,x
+        sta rowMap
+        lda #>YardMap
+        sta rowMap+1
         rts
 
 Update
@@ -702,6 +759,21 @@ NextSeed
         adc #20
         sta cooldown
         inc dodges
+        inc yardDodges
+        lda yardDodges
+        cmp #4
+        bne KeepYard
+        lda #0
+        sta yardDodges
+        inc yard
+        lda yard
+        cmp #3
+        bcc NextYard
+        lda #0
+        sta yard
+NextYard
+        jsr SelectYard
+KeepYard
         lda #1
         sta soundKind
         lda #9
@@ -776,13 +848,16 @@ ErasePots
         ldy potY
         cpy #NO_POT
         beq PickPose
-        ldx #1
+        ldx yard
+        lda ItemStart,x
+        tax
 PotRows
         txa
         sta pots,y
         iny
         inx
-        cpx #8
+        txa
+        and #7
         bne PotRows
 PickPose
         lda #>Roll
@@ -879,13 +954,23 @@ Old     .byte $30,$78,$5c,$7e,$34,$38,$7c,$56,$75,$35,$35,$25,$25,$67
 Stride  .byte $30,$78,$5c,$7e,$34,$38,$7c,$56,$75,$35,$35,$29,$49,$cf
 Lift    .byte $30,$78,$5d,$7f,$35,$3e,$7c,$58,$70,$30,$34,$24,$24,$66
 OldInk  .byte $08,$0e,$1c,$08,$0e,$0a,$c4,$c6,$c4,$32,$32,$34,$34,$00
-Sky     .byte $74,$74,$76,$76,$76,$66,$66,$66,$68,$68,$58,$58,$58,$56
-Cloud   .byte $00,$00,$01,$07,$0f,$00,$00,$00,$00,$c0,$e0,$00,$00,$00
-Vapor   .byte $00,$00,$00,$01,$07,$00,$00,$00,$00,$08,$1e,$00,$00,$00
-Sundisc .byte $00,$00,$18,$3c,$7e,$ff,$ff,$ff,$7e,$00,$3c,$00,$18,$00
-SunInk  .byte $00,$00,$1e,$1e,$1c,$1c,$2c,$2a,$2a,$00,$3a,$00,$38,$00
-PotShape .byte $00,$44,$2a,$1c,$ff,$7e,$3c,$38
-PotInk   .byte $00,$c2,$b6,$c4,$2e,$36,$34,$22
+Siding   .byte $28,$1c,$1a,$1a,$18,$1c,$1a,$1a,$18,$1c,$1a,$1a,$18,$1c
+WindowInk .byte $24,$24,$a4,$96,$96,$96,$24,$96,$96,$96,$a4,$24,$24,$24
+Shutters .byte $00,$1f,$30,$36,$36,$36,$3f,$36,$36,$36,$30,$3f,$00,$00
+Panes    .byte $00,$03,$06,$06,$06,$06,$07,$06,$06,$06,$06,$07,$00,$00
+Basket   .byte $18,$18,$24,$24,$42,$42,$5a,$bd,$ff,$7e,$3c,$18,$00,$00
+BasketInk .byte $24,$24,$24,$24,$24,$24,$d4,$c4,$c6,$36,$34,$22,$00,$00
+; Windfall apple, flowerpot, tennis ball. Offset zero always blanks P1.
+ItemShape .byte $00,$0c,$18,$76,$ff,$ff,$7e,$34
+          .byte $00,$44,$2a,$1c,$ff,$7e,$3c,$38
+          .byte $00,$3c,$7e,$ff,$ff,$ff,$7e,$3c
+ItemInk   .byte $00,$24,$c4,$42,$48,$46,$44,$42
+          .byte $00,$c2,$b6,$c4,$2e,$36,$34,$22
+          .byte $00,$d6,$de,$1e,$1a,$de,$dc,$d4
+ItemStart .byte 1,9,17
+MapOffsets .byte <YardMap,<(YardMap+ROWS),<(YardMap+2*ROWS)
+YardTicks  .byte $80,$a0,$a8
+DodgeTicks .byte 0,$80,$a0,$a8
 Times5   .byte 0,5,10,15,20,25,30,35,40,45
 Reverse3 .byte 0,4,2,6,1,5,3,7
 Tone     .byte 4,12,8
@@ -906,45 +991,167 @@ Sign3   .byte $30,$80,$90,$80,$30,$30,$50,$30,$50,$50
 Sign4   .byte $95,$54,$54,$54,$9c,$e0,$80,$c0,$80,$e0
 Sign5   .byte $03,$01,$01,$01,$01,$00,$00,$00,$00,$00
 
-        ALIGN 256
-CourtSky
-        ds 8,$56
-        ds 8,$58
-        ds 8,$48
-        ds 8,$4a
-        ds 8,$3a
-        ds 8,$2a
-        ds 12,$2c
-CourtInk
-        ds 12,$62
-        ds 2,$34
-        ds 14,$62
-        ds 2,$34
-        ds 10,$62
-        ds 6,$64
-        ds 8,$74
-        ds 6,$72
-; Brick jambs, recessed pairs of lit windows, and the distant roofline.
-Wall0
-        .byte $f0,$f0,$f0,$f0,$30,$30,$30,$30,$f0,$30,$30,$30,$f0,$f0,$f0
-        .byte $f0,$f0,$f0,$30,$30,$30,$30,$f0,$30,$30,$30,$f0,$f0,$f0,$f0
-        .byte $f0,$f0,$f0,$f0,$30,$30,$30,$30,$f0,$30,$30,$30,$f0,$f0,$f0
-        .byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
-Wall1
-        .byte $e0,$c0,$c0,$c0,$40,$40,$40,$40,$c0,$40,$40,$40,$e0,$e0,$c0
-        .byte $c0,$c0,$c0,$40,$40,$40,$40,$c0,$40,$40,$40,$c0,$c0,$e0,$e0
-        .byte $c0,$c0,$c0,$c0,$40,$40,$40,$41,$c1,$41,$41,$43,$c7,$c7,$c7
-        .byte $cf,$cf,$df,$df,$df,$ff,$fb,$fb,$ff,$ff,$ff,$ff,$ff,$ff,$ff
-        ALIGN 256
-Wall2
-        .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-        .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-        .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$02,$02,$0f,$0f,$0f,$0f
-        .byte $0f,$af,$af,$eb,$ef,$ff,$f5,$f5,$ff,$ff,$ff,$ff,$ff,$ff,$ff
 RiderRow
         ds 46,0
         .byte 1,2,3,4,5,6,7,8,9,10,11,12,13,14
 
-        .byte "FLOWERPOT ALLEY | TAYLOR WHITE / BURT HAWORTH"
+; Transpose the same artwork into page-local columns for the timed kernel.
+; Edge/center bits are written in screen order, then reversed for PF0/PF2.
+        MAC YardBand
+        IF COLUMN = 0
+        ds {1},BANDNO
+BANDNO  SET BANDNO+1
+        ENDIF
+        IF COLUMN = 1
+        .byte {2}
+        ENDIF
+        IF COLUMN = 2
+        .byte {3}
+        ENDIF
+        IF (COLUMN = 3) || (COLUMN = 5)
+VALUE   SET {4}
+        IF COLUMN = 5
+VALUE   SET {6}
+        ENDIF
+VALUE   SET ((VALUE & $55) << 1) | ((VALUE >> 1) & $55)
+VALUE   SET ((VALUE & $33) << 2) | ((VALUE >> 2) & $33)
+        .byte ((VALUE & $0f) << 4) | (VALUE >> 4)
+        ENDIF
+        IF COLUMN = 4
+        .byte {5}
+        ENDIF
+        IF COLUMN = 6
+        .byte {7}
+        ENDIF
+        ENDM
+
+        MAC DrawYards
+; Height, sky, ink, four edge pixels, left eight, center eight, right eight
+; (outside in). A clean dodge advances the route, not a paint timer.
+; Apple tree, pitched shed roof, picket gate and lawn.
+        YardBand 2,$9a,$d6,$0,$00,$00,$00
+        YardBand 2,$9a,$d6,$0,$78,$00,$00
+        YardBand 3,$9a,$c6,$3,$fc,$00,$18
+        YardBand 3,$9a,$c6,$7,$ff,$00,$7c
+        YardBand 3,$9a,$d4,$f,$ff,$80,$fe
+        YardBand 2,$9a,$c4,$f,$ff,$00,$fc
+        YardBand 2,$9a,$c2,$7,$fa,$00,$78
+        YardBand 2,$9a,$26,$0,$64,$01,$18
+        YardBand 2,$9c,$26,$0,$38,$07,$18
+        YardBand 2,$9c,$26,$0,$30,$1f,$18
+        YardBand 2,$9c,$34,$0,$30,$7f,$18
+        YardBand 2,$9c,$22,$0,$30,$ff,$18
+        YardBand 2,$ba,$2a,$0,$30,$7f,$18
+        YardBand 4,$ba,$28,$0,$30,$66,$18
+        YardBand 2,$c6,$2a,$7,$30,$7e,$1a
+        YardBand 2,$c8,$c2,$f,$e7,$bf,$ef
+        YardBand 2,$c4,$0e,$4,$44,$44,$44
+        YardBand 2,$c4,$0c,$e,$ee,$ee,$ee
+        YardBand 1,$ca,$0a,$f,$ff,$ff,$ff
+        YardBand 4,$c6,$0c,$e,$ee,$ee,$ee
+        YardBand 1,$c4,$0a,$f,$ff,$ff,$ff
+        YardBand 3,$c8,$0c,$e,$ee,$ee,$ee
+        YardBand 3,$c6,$d4,$2,$44,$08,$11
+        YardBand 3,$c8,$c6,$0,$10,$40,$40
+        YardBand 4,$0a,$08,$0,$10,$01,$02
+        IF (COLUMN = 0) && ((* - YardMap) != ROWS)
+        ERR
+        ENDIF
+; Glasshouse ridge, sloping glazing bars, and red tulips in wooden boxes.
+        YardBand 3,$9c,$ac,$0,$00,$00,$00
+        YardBand 2,$9c,$0e,$0,$00,$0f,$00
+        YardBand 2,$9c,$a4,$0,$00,$3f,$00
+        YardBand 2,$9c,$a4,$0,$00,$49,$00
+        YardBand 2,$9c,$a4,$0,$00,$91,$00
+        YardBand 2,$9c,$a4,$0,$01,$21,$01
+        YardBand 2,$9c,$a4,$0,$02,$41,$02
+        YardBand 2,$9c,$a4,$0,$04,$81,$04
+        YardBand 2,$9c,$a4,$0,$09,$01,$09
+        YardBand 2,$bc,$0e,$0,$1f,$ff,$1f
+        YardBand 4,$ac,$a4,$2,$09,$24,$09
+        YardBand 1,$ac,$0e,$7,$0f,$ff,$0f
+        YardBand 4,$ac,$a4,$7,$09,$24,$09
+        YardBand 2,$c8,$c4,$f,$ff,$ff,$ff
+        YardBand 2,$c6,$4a,$a,$28,$a2,$51
+        YardBand 2,$c6,$46,$e,$38,$e3,$71
+        YardBand 2,$c8,$c2,$4,$10,$41,$20
+        YardBand 2,$c8,$c2,$6,$58,$63,$68
+        YardBand 2,$c8,$36,$f,$ff,$ff,$ff
+        YardBand 3,$c8,$26,$e,$fe,$fe,$fe
+        YardBand 3,$c6,$24,$6,$7c,$7c,$7c
+        YardBand 4,$c8,$c4,$0,$40,$02,$08
+        YardBand 3,$c6,$d6,$4,$02,$20,$42
+        YardBand 5,$28,$26,$0,$20,$01,$10
+        IF (COLUMN = 0) && ((* - YardMap) != (2*ROWS))
+        ERR
+        ENDIF
+; Striped patio parasols, clipped hedge, pool coping, water and ladder.
+        YardBand 3,$9c,$38,$0,$08,$00,$08
+        YardBand 2,$9c,$48,$0,$3e,$00,$3e
+        YardBand 2,$9c,$48,$0,$ef,$80,$ef
+        YardBand 2,$9c,$4a,$3,$cc,$c0,$cc
+        YardBand 2,$9c,$48,$f,$9c,$e0,$9c
+        YardBand 2,$9c,$44,$5,$55,$40,$55
+        YardBand 4,$9c,$26,$0,$08,$00,$08
+        YardBand 3,$ca,$c2,$f,$ff,$ff,$ff
+        YardBand 2,$c6,$c2,$d,$f6,$db,$ee
+        YardBand 2,$c4,$0c,$f,$ff,$ff,$ff
+        YardBand 2,$c4,$0c,$8,$88,$88,$88
+        YardBand 2,$c4,$0a,$f,$ff,$ff,$ff
+        YardBand 2,$0a,$04,$0,$00,$00,$48
+        YardBand 2,$0e,$88,$0,$07,$ff,$4f
+        YardBand 2,$aa,$0e,$f,$f0,$00,$78
+        YardBand 2,$aa,$0c,$f,$c3,$06,$48
+        YardBand 2,$a8,$0e,$f,$80,$00,$78
+        YardBand 2,$a8,$0c,$f,$0e,$1c,$48
+        YardBand 2,$a8,$0e,$e,$00,$00,$78
+        YardBand 2,$aa,$0c,$e,$70,$60,$00
+        YardBand 2,$ac,$0e,$f,$ff,$ff,$ff
+        YardBand 2,$0a,$08,$8,$88,$88,$88
+        YardBand 4,$c8,$d4,$2,$41,$10,$24
+        YardBand 3,$c6,$c4,$0,$10,$40,$40
+        YardBand 5,$0a,$08,$0,$10,$01,$02
+        IF (COLUMN = 0) && ((* - YardMap) != (3*ROWS))
+        ERR
+        ENDIF
+        ENDM
+
+        ALIGN 256
+COLUMN  SET 0
+BANDNO  SET 0
+YardMap
+        DrawYards
+        IF BANDNO > 128
+        ERR
+        ENDIF
+        ALIGN 128
+COLUMN  SET 1
+YardSky
+        DrawYards
+        ALIGN 128
+COLUMN  SET 2
+YardInk
+        DrawYards
+        ALIGN 128
+COLUMN  SET 3
+YardEdge
+        DrawYards
+        ALIGN 128
+COLUMN  SET 4
+YardLeft
+        DrawYards
+        ALIGN 128
+COLUMN  SET 5
+YardCenter
+        DrawYards
+        ALIGN 128
+COLUMN  SET 6
+YardRight
+        DrawYards
+
+        .byte "GRAMPS' BACKYARD | TAYLOR WHITE / BURT HAWORTH"
+        IF * > $fffa
+        ERR
+        ENDIF
         ORG $fffa
         .word Start,Start,Start

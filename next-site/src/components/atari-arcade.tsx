@@ -5,6 +5,7 @@ export function AtariArcade() {
     <details open className="atari-arcade">
       <summary><span>Homebrew arcade</span>Play the Atari cartridges</summary>
       <form action="/atari/play.html" method="get" target="atari-homebrew-screen">
+        <input type="hidden" name="v" value="2.1.0" />
         <label>
           Cartridge
           <select name="game">
@@ -15,7 +16,7 @@ export function AtariArcade() {
             </optgroup>
             <optgroup label="Revamped editions">
               <option value="super-step-bros-revamped">Super Step Bros.: Switchback Rescue (Revamped)</option>
-              <option value="skateboard-steve-revamped">Skateboard Steve: Flowerpot Alley (Revamped)</option>
+              <option value="skateboard-steve-revamped">Skateboard Steve: Gramps&apos; Backyard (Revamped)</option>
               <option value="simon-says-revamped">Simon Says: Echo (Revamped)</option>
             </optgroup>
           </select>

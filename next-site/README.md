@@ -67,13 +67,23 @@ Append `-revamped` to any of the three IDs for the new edition.
 **Super Step Bros.: Switchback Rescue** keeps Bo and Jo's canyon rescue.
 Walk with Left/Right and jump with Up or Space. Call for a rock with Down
 when playing alone, or have a partner steer Jo with F/H and drop with A.
-Dodge the falling rocks, build five piers and jump to the flag.
+Dodge the falling rocks and use the piers to reach the flag in three canyons:
+**Sunset Stair** climbs east, **Split Saddle** dips between two rises, and
+**Westward Crown** starts from a high camp and climbs west with stones
+delivered out of climbing order. The HUD shows RIM 1–3. Reaching a flag
+carries remaining hearts to the next canyon automatically. Fire after OUT
+retries that canyon; fire after HOME or Game Reset starts the campaign over.
 
-**Skateboard Steve: Flowerpot Alley** keeps Steve on the sidewalk and Gramps
-above. Steer with Left/Right; hold Space to push faster. Survive for points
-and earn two more per dodged flowerpot. A second player can move Gramps with
-F/H and drop pots with G or A; after three idle seconds the computer takes
-over. Three hits end the run. P1 fire or Game Reset starts a new one.
+**Skateboard Steve: Gramps' Backyard** takes place in Gramps' suburban
+backyard. Steve skates below the deck while Gramps tries to chase him out.
+Steer with Left/Right and hold Space to push faster. Four clean dodges move
+Steve from the **Picket-Fence Yard** (apples), to the **Greenhouse Garden**
+(flowerpots), to the **Poolside Patio** (tennis balls), then back to the
+first yard. Hearts and score carry across settings. The marks under the
+score show the yard; the marks under the hearts count dodges in that yard.
+A partner can steer Gramps with F/H and throw with G or A; after three idle
+seconds the computer takes over. After three hits, P1 fire starts a new run;
+Game Reset starts over at any time.
 
 **Simon Says: Echo** keeps the original right, left, down, up opening.
 The four arrow-shaped pads flash and sound a note; release the stick between

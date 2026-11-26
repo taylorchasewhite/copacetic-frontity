@@ -5,15 +5,16 @@
 ; Left stick: walk, Fire or Up to jump, Down to call a stone. A call
 ; sends Jo to the blinking survey mark and releases a stone automatically.
 ; Right stick: steer Jo's trolley left/right; Fire to drop by hand.
-; Five sandstone piers lead to the rim. Avoid falling stones and long falls.
-; A rescue or the loss of all three hearts ends the run. Fire or Reset retries.
+; Cross Sunset Stair, Split Saddle and Westward Crown on three shared hearts.
+; Five stones and the flag clear each canyon. Fire after OUT retries that
+; canyon; fire after HOME or console Reset starts over at Sunset Stair.
 
         processor 6502
         include "vcs.h"
 
         seg.u RAM
         org $80
-mode        ds 1                ; 0 climbing, 1 home, 2 out
+mode        ds 1                ; 0 climbing, 1 home, 2 out, 3 next canyon
 lives       ds 1
 piers       ds 1                ; number of anchored stones, 0..5
 boX         ds 1                ; left edge in TIA clocks
@@ -46,9 +47,15 @@ buffer      ds 1
 endDelay    ds 1
 hudRows     ds 1
 rimPtr      ds 2
-renderBand  ds 64
+West1       ds 8                ; per-stratum foreground in TIA bit order
+West2       ds 8
+East0       ds 8
+East1       ds 8
 westPtr     ds 2
 lamp        ds 1
+stage       ds 1                ; zero-based canyon number
+layout      ds 1                ; first of six sockets in this canyon
+layerPtr    ds 2
 
         seg CODE
         org $f000
@@ -232,18 +239,13 @@ JoRow
         lda #$46
         sta COLUPF
         ldy #63
-        lda piers
-        asl
-        asl
-        asl
-        ora #7
-        tax
+        ldx #7
         lda (boPtr),y
         jmp WorldFirst
 
 ; Eight strata x eight double lines. Restore each left register after
 ; hblank, then rewrite for the right half behind the passing beam.
-; X = piers * 8 + stratum. All timing-sensitive tables fit in pages.
+; X = stratum. All timing-sensitive tables fit in pages.
         align 256
 WorldFirst
         sta WSYNC
@@ -268,7 +270,7 @@ WorldFirst
         lda (stonePtr),y
         sta WSYNC
         sta GRP1
-        lda Layers,y
+        lda (layerPtr),y
         sta COLUPF
         lda (westPtr),y
         sta PF0
@@ -284,7 +286,7 @@ WorldFirst
         sta PF2
         dey
         bmi WorldDone
-        ldx renderBand,y
+        ldx Band,y
         lda (boPtr),y
         jmp WorldFirst
 WorldDone
@@ -343,6 +345,13 @@ Position
 
 NewGame
         lda #0
+        sta stage
+Refill
+        lda #3
+        sta lives
+EnterStage
+        subroutine
+        lda #0
         sta mode
         sta piers
         sta shield
@@ -351,18 +360,31 @@ NewGame
         sta soundTime
         sta sound
         sta endDelay
-        sta facing
         sta frame
-        lda #3
-        sta lives
-        lda #44
+        ldx #31
+.clear  sta West1,x
+        dex
+        bpl .clear
+        ldx stage
+        lda LayerLo,x
+        sta layerPtr
+        lda LayerHi,x
+        sta layerPtr+1
+        lda FirstSocket,x
+        sta layout
+        tax
+        lda DockX,x
         sta joX
         jsr Target
 Respawn
-        lda #24
+        ldx stage
+        lda SpawnX,x
         sta boX
-        lda #0
+        lda SpawnY,x
         sta boY
+        lda StartFacing,x
+        sta facing
+        lda #0
         sta air
         sta peak
         sta walking
@@ -412,9 +434,19 @@ Controls
         beq .retry
         dec endDelay
         rts
-.retry  lda edges
+.retry  lda mode
+        cmp #3
+        bne .button
+        inc stage
+        jmp EnterStage
+.button lda edges
         and #3
         beq .ret
+        lda mode
+        cmp #2
+        bne .replay
+        jmp Refill
+.replay
         jmp NewGame
 .ret    rts
 Play
@@ -442,7 +474,8 @@ Play
         cmp #$80
         bne .support
         lda boX
-        cmp #20
+        ldx stage
+        cmp MinBoX,x
         beq .support
         dec candidate
         lda #8
@@ -530,17 +563,29 @@ Play
 .arrival
         lda mode
         bne .ret
+        lda piers
+        cmp #5
+        bne Trolley
         lda boX
-        cmp #140
-        bcc Trolley
+        sec
+        sbc goalX
+        clc
+        adc #5
+        cmp #11
+        bcs Trolley
         lda boY
-        cmp #48
+        cmp goalY
         bne Trolley
         lda air
         bne Trolley
+        ldx stage
         lda #1
+        cpx #2
+        beq .end
+        lda #3
+.end
         sta mode
-        lda #40
+        lda #64
         sta endDelay
         ldx #5
         jmp Chime
@@ -548,24 +593,40 @@ Play
 
 ; Physical geometry uses the same 4-clock cells as the visible piers.
 Height
+        subroutine
         lda candidate
         clc
         adc #4
         cmp #144
-        bcs .rim
-        ldx piers
+        bcs .east
+        ldx stage
+        cpx #2
+        bne .steps
+        cmp #16
+        bcc .west
+.steps  ldx piers
         beq .sand
-.pier   cmp PierX-1,x
+        pha
+        txa
+        clc
+        adc layout
+        tax
+        pla
+.pier   dex
+        cmp PierX,x
         bcc .next
-        cmp PierEnd-1,x
-        bcs .sand
-        lda Heights-1,x
+        cmp PierEnd,x
+        bcs .next
+        lda Heights,x
         rts
-.next   dex
+.next   cpx layout
         bne .pier
 .sand   lda #0
         rts
-.rim    lda #48
+.east   ldx stage
+        lda EastHeight,x
+        rts
+.west   lda #48
         rts
 
 Trolley
@@ -579,6 +640,10 @@ Trolley
         lda joX
         cmp goalX
         beq .park
+        bcc .parkEast
+        dec joX
+        rts
+.parkEast
         inc joX
         rts
 .requests
@@ -597,7 +662,7 @@ Trolley
         cmp #8
         bne .steer
         lda joX
-        cmp #30
+        cmp #24
         beq .capture
         dec joX
         bne .capture
@@ -676,6 +741,7 @@ Falling
         adc #5
         cmp #11
         bcs .floor
+        jsr Anchor
         inc piers
         lda #0
         sta manual
@@ -712,26 +778,43 @@ Hit
 .done   rts
 Target
         subroutine
-        ldx piers
+        lda piers
+        clc
+        adc layout
+        tax
         lda DockX,x
         sta goalX
         lda Heights,x
         sta goalY
-        txa
-        asl
-        asl
-        asl
-        ora #7
-        ldy #63
-.band   REPEAT 8
-        sta renderBand,y
-        dey
-        REPEND
-        bmi .done
-        sec
-        sbc #1
-        jmp .band
-.done
+        rts
+
+; Add the new socket's four foreground masks to each occupied stratum.
+Anchor
+        subroutine
+        lda piers
+        clc
+        adc layout
+        tax
+        lda goalY
+        lsr
+        lsr
+        lsr
+        tay
+.row    dey
+        lda West1,y
+        ora MaskW1,x
+        sta West1,y
+        lda West2,y
+        ora MaskW2,x
+        sta West2,y
+        lda East0,y
+        ora MaskE0,x
+        sta East0,y
+        lda East1,y
+        ora MaskE1,x
+        sta East1,y
+        tya
+        bne .row
         rts
 
 Prepare
@@ -795,14 +878,32 @@ Prepare
         sec
         sbc stoneY
 .rock   sta stonePtr
-        lda #>RimA
+        lda stage
+        asl
+        tay
+        lda piers
+        cmp EdgeBuildIndex,y
+        bcc .rim
+        iny
+.rim    lda EastLo,y
+        sta rimPtr
+        lda EastHi,y
         sta rimPtr+1
-        lda #<RimA
-        ldx piers
-        cpx #5
-        bne .rim
-        lda #<RimB
-.rim    sta rimPtr
+        lda goalY
+        lsr
+        lsr
+        lsr
+        tax
+        dex
+        lda piers
+        cmp #5
+        bne .west
+        ldx #5
+        lda stage
+        cmp #2
+        bne .west
+        inx
+.west
         lda WestLo,x
         sta westPtr
         lda WestHi,x
@@ -814,10 +915,17 @@ Prepare
         adc lives
         sta heartIndex
         lda mode
+        beq .stageWord
+        clc
+        adc #2                  ; HOME, OUT, NEXT follow the three stage signs
+        bne .word
+.stageWord
+        lda stage
+.word   sta wordIndex
         asl
         asl
         clc
-        adc mode
+        adc wordIndex
         sta wordIndex
         rts
 
@@ -859,10 +967,15 @@ SoundTick
 
 Rise    byte 2,2,2,1,1,1,1,1,1,1,0,0,0,0,0
         byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$fe,$fe,$fe,$fe
-PierX   byte 40,60,80,100,120
-PierEnd byte 56,76,96,116,136
-DockX   byte 44,64,84,104,124,146
-Heights byte 8,16,24,32,40,48
+FirstSocket byte 0,6,12
+SpawnX  byte 24,20,146
+SpawnY  byte 0,0,8
+StartFacing byte 0,0,8
+MinBoX  byte 20,20,1
+EastHeight byte 48,32,8
+EdgeBuildIndex byte 5,0,5,0,6
+LayerLo byte <Layers,<SaddleLayers,<Layers
+LayerHi byte >Layers,>SaddleLayers,>Layers
 Lengths byte 0,12,14,21,26,64,64
 Voice   byte 0,4,8,12,3,4,12
 Pitch   byte 0,7,12,9,19
@@ -875,36 +988,62 @@ Sun     byte 0,0,0,2,2,2,2,0,0,0,0,0
 SkyBack byte $84,$84,$86,$86,$66,$66,$48,$48,$38,$38,$38,$34
 SkyInk  byte $9a,$9a,$8c,$8c,$1c,$1c,$1c,$62,$62,$64,$64,$54
 
-; Pier masks indexed by (built * 8 + altitude / 8). Each is a complete
-; horizontal slice. The socket at the far right is the only 48-high ledge.
-        align 256
-West1
-        REPEAT 6
-        IF (.-West1) = 0
-        byte 0,0,0,0,0,0,0,0
-        ELSE
-        byte $03,0,0,0,0,0,0,0
-        ENDIF
-        REPEND
-West2   byte 0,0,0,0,0,0,0,0
-        byte $03,0,0,0,0,0,0,0
-        REPEAT 4
-        byte $7b,$78,0,0,0,0,0,0
-        REPEND
-East0
-        REPEAT 3
-        byte 0,0,0,0,0,0,0,0
-        REPEND
-        REPEAT 3
-        byte $f0,$f0,$f0,0,0,0,0,0
-        REPEND
-East1
-        REPEAT 4
-        byte 0,0,0,0,0,0,0,0
-        REPEND
-        byte $78,$78,$78,$78,0,0,0,0
-        byte $7b,$7b,$7b,$7b,$03,0,0,0
-        align 256
+; [west edge, east edge, top, west PF1/PF2, east PF0/PF1].
+; PF2 at the far east is part of the detailed rim. Every sixth entry is a flag.
+; The western crown is built in survey order, not in climbing order.
+        MAC CANYONS
+        {1} 40,56,8,$03,$03,$00,$00
+        {1} 60,76,16,$00,$78,$00,$00
+        {1} 80,96,24,$00,$00,$f0,$00
+        {1} 100,116,32,$00,$00,$00,$78
+        {1} 120,136,40,$00,$00,$00,$03
+        {1} 144,160,48,$00,$00,$00,$00
+        {1} 36,56,8,$07,$03,$00,$00
+        {1} 64,80,16,$00,$f0,$00,$00
+        {1} 88,104,8,$00,$00,$c0,$c0
+        {1} 108,116,16,$00,$00,$00,$18
+        {1} 124,136,24,$00,$00,$00,$01
+        {1} 144,160,32,$00,$00,$00,$00
+        {1} 116,128,8,$00,$00,$00,$07
+        {1} 72,88,24,$00,$c0,$30,$00
+        {1} 96,112,16,$00,$00,$00,$f0
+        {1} 24,40,40,$3c,$00,$00,$00
+        {1} 48,64,32,$00,$0f,$00,$00
+        {1} 0,16,48,$00,$00,$00,$00
+        ENDM
+        MAC WEST_EDGE
+        byte {1}
+        ENDM
+        MAC EAST_EDGE
+        byte {2}
+        ENDM
+        MAC TOP
+        byte {3}
+        ENDM
+        MAC DOCK
+        byte ({1}+{2})/2-4
+        ENDM
+        MAC W1_MASK
+        byte {4}
+        ENDM
+        MAC W2_MASK
+        byte {5}
+        ENDM
+        MAC E0_MASK
+        byte {6}
+        ENDM
+        MAC E1_MASK
+        byte {7}
+        ENDM
+PierX   CANYONS WEST_EDGE
+PierEnd CANYONS EAST_EDGE
+Heights CANYONS TOP
+DockX   CANYONS DOCK
+MaskW1  CANYONS W1_MASK
+MaskW2  CANYONS W2_MASK
+MaskE0  CANYONS E0_MASK
+MaskE1  CANYONS E1_MASK
+        align 64
 Layers  byte $38,$36,$36,$34,$26,$34,$38,$2c
         byte $46,$34,$34,$36,$46,$36,$38,$2c
         byte $36,$36,$46,$34,$34,$36,$38,$2c
@@ -935,6 +1074,10 @@ GorgeSky
         REPEAT 7
         byte $58
         REPEND
+Band    byte 0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1
+        byte 2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3
+        byte 4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5
+        byte 6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7
 
 ; All indirect sprite windows have 63 clear rows on either side, so
 ; the kernel never clips by branching and never crosses a page.
@@ -954,9 +1097,17 @@ Boulder byte $7c,$ee,$ff,$7e,$38
 Heart0  byte 0,0,0,0,0,$40,$e0,$e0,$c0,$80,$40,$e0,$e0,$c0,$80,$40,$e0,$e0,$c0,$80
 Heart1  byte 0,0,0,0,0,$80,$c0,$c0,$80,0,$8a,$df,$df,$8e,$04,$8a,$df,$df,$8e,$04
 Heart2  byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,$14,$3e,$3e,$1c,$08
-Word0   byte $70,$10,$10,$10,$70,$50,$50,$70,$50,$50,$70,$50,$50,$50,$70
-Word1   byte $8e,$84,$84,$84,$ee,$ea,$ae,$ae,$aa,$ea,$ae,$a4,$a4,$a4,$e4
-Word2   byte $35,$57,$37,$55,$35,$27,$21,$23,$01,$27,0,0,0,0,0
+; RIM 1 / RIM 2 / RIM 3, HOME, OUT, NEXT.
+Word0   REPEAT 3
+        byte $60,$a0,$60,$a0,$a0
+        REPEND
+        byte $50,$50,$70,$50,$50,$70,$50,$50,$50,$70,$a0,$e0,$e0,$e0,$a0
+Word1   REPEAT 3
+        byte $75,$27,$27,$25,$75
+        REPEND
+        byte $ea,$ae,$ae,$aa,$ea,$ae,$a4,$a4,$a4,$e4,$75,$45,$62,$45,$75
+Word2   byte $20,$30,$20,$20,$70,$70,$40,$70,$10,$70,$70,$40,$60,$40,$70
+        byte $27,$21,$23,$01,$27,0,0,0,0,0,$0e,$04,$04,$04,$04
 Sky0    byte 0,$10,0,0,0,0,0,$30,$70,$f0,$f0,$f0
 Sky1    byte 0,$04,$0e,0,0,0,0,$06,$0f,$1f,$ff,$ff
 Sky2    byte 0,0,0,0,0,0,0,0,$81,$c3,$e7,$ff
@@ -964,7 +1115,7 @@ Sky3    byte 0,0,0,$80,0,0,0,$10,$30,$70,$f0,$f0
 Sky4    byte 0,0,0,$80,0,0,0,$03,$07,$0f,$3f,$ff
 Sky5    byte 0,0,0,0,0,0,0,$80,$c0,$e0,$f7,$ff
 
-        align 256
+        align 64
         MAC EAST_RIM
         byte $f0|{1},$f0|{1},$f0|{1},$e0|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1}
         byte $f0|{1},$f0|{1},$f0|{1},$f0|{1},$d0|{1},$b0|{1},$f0|{1},$f0|{1}
@@ -977,10 +1128,34 @@ Sky5    byte 0,0,0,0,0,0,0,$80,$c0,$e0,$f7,$ff
         ENDM
 RimA    EAST_RIM 0
 RimB    EAST_RIM 3
+        MAC SADDLE_RIM
+        byte $f0|{1},$f0|{1},$f0|{1},$e0|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1}
+        byte $f0|{1},$f0|{1},$f0|{1},$e0|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1}
+        byte $f0|{1},$f0|{1},$f0|{1},$e0|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1}
+        byte $f0,$f0,$f0,$f0,$f0,$d0,$f0,$f0
+        byte $40,$40,$40,$40,$40,$40,$60,$70
+        byte $78,$7c,$7c,$40,0,0,0,0
+        ds 16,0
+        ENDM
+SaddleA SADDLE_RIM 0
+SaddleB SADDLE_RIM 3
+CampA   byte $f0,$f0,$e0,$f0,$f0,$f0,$f0,$f0
+        ds 56,0
+SaddleLayers
+        byte $2c,$26,$26,$24,$18,$24,$28,$2c
+        byte $38,$24,$24,$26,$38,$26,$28,$2a
+        byte $26,$26,$38,$24,$24,$26,$28,$2a
+        byte $38,$24,$26,$26,$18,$24,$28,$2c
+        byte $2c,$2c,$28,$28,$28,$2c,$1e,$1c
+        byte $1c,$1c,$1e,$1e,$28,$28,$36,$38
+        byte $26,$38,$24,$26,$26,$24,$28,$2a
+        byte $38,$26,$26,$24,$18,$24,$28,$2a
 Rig     ds 51,0
         byte $18,$3c,$24,$1c,$08,$08,$08,$08,$08,$08,$08,$08,$08
-WestLo  byte <WestA,<WestB,<WestC,<WestD,<WestE,<WestF
-WestHi  byte >WestA,>WestB,>WestC,>WestD,>WestE,>WestF
+EastLo  byte <RimA,<RimB,<SaddleA,<SaddleB,<CampA
+EastHi  byte >RimA,>RimB,>SaddleA,>SaddleB,>CampA
+WestLo  byte <WestA,<WestB,<WestC,<WestD,<WestE,<WestF,<WestFlag
+WestHi  byte >WestA,>WestB,>WestC,>WestD,>WestE,>WestF,>WestFlag
 
 ; The white double dash marks the NEXT socket, not the trolley. Embedding
 ; that bit in the rim profile costs just one extra store in the kernel.
@@ -994,13 +1169,18 @@ WestHi  byte >WestA,>WestB,>WestC,>WestD,>WestE,>WestF
         byte $30,$30,$30,$30,$10,$10,0,0
         byte 0,0,0,0,0,0,0,0
         ENDM
-        align 256
+        align 64
 WestA   WEST_RIM 2,0,0,0,0
 WestB   WEST_RIM 0,2,0,0,0
 WestC   WEST_RIM 0,0,2,0,0
 WestD   WEST_RIM 0,0,0,2,0
 WestE   WEST_RIM 0,0,0,0,2
 WestF   WEST_RIM 0,0,0,0,0
+WestFlag REPEAT 6
+        byte $f0,$f0,$d0,$f0,$f0,$b0,$f0,$f0
+        REPEND
+        byte $20,$20,$20,$20,$20,$20,$60,$e0
+        byte $e0,$e0,$e0,$20,0,0,0,0
 
         IF * > $fffa
         ERR
