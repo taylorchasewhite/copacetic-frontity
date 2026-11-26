@@ -66,6 +66,7 @@ export default async function ContentPage({ params }: PageProps) {
       : undefined;
   const author = item._embedded?.author?.[0];
   const isPost = item.type === "post";
+  const isAtariPost = slug === "atari-2600-homebrew-programming";
 
   // Pull categories from the embedded "wp:term" matrix (categories are taxonomy "category").
   const termGroups = item._embedded?.["wp:term"] ?? [];
@@ -137,8 +138,8 @@ export default async function ContentPage({ params }: PageProps) {
             </div>
           )}
 
-          {slug === "atari-2600-homebrew-programming" && <AtariArcade />}
-          <div className="prose prose-lg max-w-none">
+          {isAtariPost && <AtariArcade />}
+          <div className={`prose prose-lg max-w-none${isAtariPost ? " overflow-x-auto [&_iframe]:max-w-full [&_.wp-caption]:max-w-full" : ""}`}>
             <WpHtml html={item.content.rendered} />
           </div>
         </article>
