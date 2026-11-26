@@ -1,0 +1,476 @@
+; Simon Says: Echo -- NTSC Atari 2600, 4 KiB.
+; A new cartridge based on Taylor Chase White's 2014 Simon Says.
+; P1 fire: solo ladder. P2 fire: two-player accuracy/time duel. Reset: lobby.
+        processor 6502
+        include "vcs.h"
+NO_ILLEGAL_OPCODES = 1
+        include "macro.h"
+
+Lobby   = 0
+Ready   = 1
+Cue     = 2
+Gap     = 3
+Listen  = 4
+Echo    = 5
+Finish  = 6
+
+        SEG.U ram
+        ORG $80
+phase           ds 1
+frame           ds 1
+timer           ds 1
+pad             ds 1
+duel            ds 1
+player          ds 1
+count           ds 1
+cursor          ds 1
+held            ds 1
+mistakes        ds 2
+ticksLo         ds 2
+ticksHi         ds 2
+result          ds 1    ; 1/2: winner, 3: dead heat, 4: solo miss
+seed            ds 1
+pattern         ds 8
+leftInk         ds 6
+rightInk        ds 6
+meter           ds 1
+nextLeft        ds 1
+nextRight       ds 1
+nextPF0         ds 1
+nextPF1         ds 1
+nextPF2         ds 1
+
+        SEG code
+        ORG $F000
+Start
+        CLEAN_START
+        lda #3                  ; mirrored PF, separate left/right colors
+        sta CTRLPF
+        lda #$02
+        sta VBLANK
+        lda #$04
+        sta AUDC0
+        lda #$59
+        sta seed
+
+FrameLoop
+        lda #2
+        sta WSYNC
+        sta VSYNC
+        sta WSYNC
+        sta WSYNC
+        sta WSYNC
+        lda #0
+        sta VSYNC
+        lda #43
+        sta TIM64T
+        inc frame
+        jsr Update
+        jsr Paint
+        ldx #0
+        jsr PrepareRow
+WaitBlank
+        lda INTIM
+        bne WaitBlank
+        lda #0
+        sta WSYNC
+        sta VBLANK
+DrawRow
+        lda nextLeft
+        sta COLUP0
+        lda nextPF0
+        sta PF0
+        lda nextPF1
+        sta PF1
+        lda nextPF2
+        sta PF2
+        lda nextRight
+        sta COLUP1
+        sta WSYNC
+        sta WSYNC
+        sta WSYNC
+        inx
+        cpx #48
+        beq EndPicture
+        jsr PrepareRow
+        sta WSYNC
+        jmp DrawRow
+EndPicture
+        sta WSYNC
+        lda #2
+        sta VBLANK
+        ldx #30
+Overscan
+        sta WSYNC
+        dex
+        bne Overscan
+        jmp FrameLoop
+
+; Stage the next stripe on the fourth copy of the previous line. All PF
+; writes on the following line then beat the visible beam, including PF0.
+PrepareRow
+        ldy Stripe,x
+        lda leftInk,y
+        sta nextLeft
+        lda rightInk,y
+        sta nextRight
+        ldy Shapes,x
+        lda Bits0,y
+        sta nextPF0
+        lda Bits2,y
+        sta nextPF2
+        lda Bits1,y
+        cpy #19
+        bne StorePF1
+        lda meter
+StorePF1
+        sta nextPF1
+        rts
+
+Update
+        lda SWCHB
+        lsr
+        bcs Dispatch
+        lda #Lobby
+        sta phase
+        sta cursor
+        sta result
+        sta player
+        rts
+Dispatch
+        ldx phase
+        bne NotLobby
+        jsr Random
+        bit INPT4
+        bpl StartSolo
+        bit INPT5
+        bmi Return
+        lda #1
+        bne Begin
+StartSolo
+        lda #0
+Begin
+        sta duel
+        lda #0
+        sta player
+        sta result
+        sta mistakes
+        sta mistakes+1
+        sta ticksLo
+        sta ticksLo+1
+        sta ticksHi
+        sta ticksHi+1
+        ldx #3
+Opening
+        txa                     ; original opening: right, left, down, up
+        sta pattern,x
+        dex
+        bpl Opening
+        lda #4
+        sta count
+BeginTurn
+        lda #0
+        sta cursor
+        lda #1
+        sta held
+        lda #48
+        sta timer
+        lda #Ready
+        sta phase
+Return
+        rts
+NotLobby
+        cpx #Finish
+        bne InGame
+        ; Release both buttons before allowing another match.
+        bit INPT4
+        bpl FinishPress
+        bit INPT5
+        bpl FinishPress
+        lda #0
+        sta held
+        rts
+FinishPress
+        lda held
+        bne Return
+        jmp StartFromResult
+InGame
+        cpx #Listen
+        beq ReadInput
+        cpx #Echo
+        bne TickTimer
+        jsr Stick               ; remember a release during the feedback tone
+        cmp #$0f
+        bne TickTimer
+        lda #0
+        sta held
+TickTimer
+        dec timer
+        bne Return
+        cpx #Echo
+        beq AfterEcho
+        cpx #Cue
+        bne StartCue
+        lda #Gap                ; silence separates even identical colors
+        sta phase
+        lda #10
+        sta timer
+        rts
+StartCue
+        ldx cursor
+        cpx count
+        beq Prompt
+        lda pattern,x
+        sta pad
+        inc cursor
+        lda #23
+        sta timer
+        lda #Cue
+        sta phase
+        rts
+Prompt
+        lda #0
+        sta cursor
+        lda #Listen
+        sta phase
+        rts
+AfterEcho
+        lda cursor
+        cmp count
+        beq TurnComplete
+        lda #Listen
+        sta phase
+        rts
+ReadInput
+        ldx player
+        inc ticksLo,x
+        bne Direction
+        inc ticksHi,x
+        bne Direction
+        dec ticksHi,x           ; saturate instead of wrapping a slow turn
+        dec ticksLo,x
+Direction
+        jsr Stick
+        cmp #$0f
+        bne Decode
+        lda #0
+        sta held
+        rts
+Decode
+        ldx held
+        beq NewDirection
+        rts
+NewDirection
+        ldx #3
+FindDirection
+        cmp SwitchMasks,x
+        beq Accept
+        dex
+        bpl FindDirection
+        rts                     ; ambiguous diagonal is not an answer
+Accept
+        stx pad
+        lda #1
+        sta held
+        txa
+        ldy cursor
+        cmp pattern,y
+        beq Answered
+        ldx player
+        inc mistakes,x
+Answered
+        inc cursor
+        lda #Echo
+        sta phase
+        lda #9
+        sta timer
+        rts
+TurnComplete
+        lda duel
+        bne DuelScoring
+        lda mistakes
+        beq Extend
+        lda #4
+        bne SetResult
+Extend
+        ldx count
+        cpx #8
+        beq P1Wins
+        jsr Random
+        and #3
+        sta pattern,x
+        inc count
+        jmp BeginTurn
+DuelScoring
+        lda player
+        bne Decide
+        inc player
+        jmp BeginTurn
+Decide
+        lda mistakes
+        cmp mistakes+1
+        bne LowerWins
+        lda ticksHi
+        cmp ticksHi+1
+        bne LowerWins
+        lda ticksLo
+        cmp ticksLo+1
+        bne LowerWins
+        lda #3
+        bne SetResult
+LowerWins
+        bcc P1Wins
+        lda #2
+        bne SetResult
+P1Wins
+        lda #1
+SetResult
+        sta result
+        lda #Finish
+        sta phase
+        lda #1
+        sta held
+        rts
+StartFromResult
+        bit INPT4
+        bmi AgainDuel
+        jmp StartSolo
+AgainDuel
+        lda #1
+        jmp Begin
+Stick
+        lda SWCHA
+        ldy player
+        bne LowNibble
+        lsr
+        lsr
+        lsr
+        lsr
+LowNibble
+        and #$0f
+        rts
+Random
+        lda seed
+        lsr
+        bcc StoreSeed
+        eor #$b8
+StoreSeed
+        sta seed
+        rts
+
+; The board is spatial as well as musical: each pad has a cut-out arrow.
+; Band 1 is the turn lamp; 2/3/4 are the upper/side/lower pads; 5 is progress.
+Paint
+        lda #$02
+        sta COLUBK
+        lda #0
+        sta AUDV0
+        ldx #5
+BaseColors
+        lda BaseLeft,x
+        sta leftInk,x
+        lda BaseRight,x
+        sta rightInk,x
+        dex
+        bpl BaseColors
+        lda player
+        beq FirstLamp
+        lda #$2c
+        sta rightInk+1
+        bne TurnLampDone
+FirstLamp
+        lda #$a8
+        sta leftInk+1
+TurnLampDone
+        ldx cursor
+        lda Progress,x
+        sta meter
+        lda phase
+        cmp #Finish
+        beq PaintResult
+        cmp #Lobby
+        beq PaintLobby
+        cmp #Cue
+        beq SoundPad
+        cmp #Echo
+        beq SoundPad
+        cmp #Listen
+        bne DonePainting
+        lda #$0e
+        sta leftInk+5
+        sta rightInk+5
+DonePainting
+        rts
+PaintLobby
+        lda #$aa
+        sta meter
+        lda frame
+        lsr
+        lsr
+        lsr
+        lsr
+        lsr
+        and #3
+        tax
+        jmp LightPad
+PaintResult
+        ldx result
+        lda Results,x
+        sta leftInk+5
+        sta rightInk+5
+        sta leftInk+1
+        sta rightInk+1
+        lda #$ff
+        sta meter
+        rts
+SoundPad
+        ldx pad
+        lda Notes,x
+        sta AUDF0
+        lda #5
+        sta AUDV0
+LightPad
+        lda Bright,x
+        cpx #0
+        beq RightPad
+        cpx #1
+        beq LeftPad
+        cpx #2
+        beq LowerPad
+        sta leftInk+2
+        sta rightInk+2
+        rts
+RightPad
+        sta rightInk+3
+        rts
+LeftPad
+        sta leftInk+3
+        rts
+LowerPad
+        sta leftInk+4
+        sta rightInk+4
+        rts
+
+SwitchMasks .byte $07,$0b,$0d,$0e
+Notes       .byte 17,19,14,23
+Bright      .byte $9e,$1e,$4c,$ce
+BaseLeft    .byte $00,$04,$c4,$16,$44,$86
+BaseRight   .byte $00,$04,$c4,$94,$44,$86
+Results     .byte 0,$aa,$2c,$0e,$46
+Progress    .byte 0,$80,$c0,$e0,$f0,$f8,$fc,$fe,$ff
+
+; One mirrored half of a 40-cell board. Each logical row spans four scanlines.
+Shapes
+        .byte 0,1,2,0,0,3,4,5,6,7,8,6,6,5,4,0
+        .byte 0,9,10,11,12,13,13,12,11,10,9,0,0,0
+        .byte 4,5,6,6,8,7,6,5,4,3,0,0,2,0,19,19,0,0
+Stripe
+        .byte 0,1,1,0,0,2,2,2,2,2,2,2,2,2,2,0
+        .byte 0,3,3,3,3,3,3,3,3,3,3,0,0,0
+        .byte 4,4,4,4,4,4,4,4,4,4,0,0,5,0,5,5,0,0
+Bits0   .byte 0,$80,0,0,0,0,0,0,0,$80,$c0,$c0,$c0,$40,0,0,0,0,0,0
+Bits1   .byte 0,$8c,$ff,0,0,0,0,0,0,$ff,$ff,$bf,$3f,$03,0,0,0,0,0,0
+Bits2   .byte 0,$c6,$0f,$f0,$f8,$fc,$7c,$3c,$1c,1,3,3,3,3,0,0,0,0,0,0
+
+        ORG $fffa
+        .word Start,Start,Start

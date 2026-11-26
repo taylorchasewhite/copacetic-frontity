@@ -1,0 +1,1010 @@
+; SUPER STEP BROS. -- SWITCHBACK RESCUE (4K, NTSC)
+; Original adventure of Jo & Bo created by Taylor White & Daltin Loomis,
+; January 11, 2014. Original copyright (c) 2014 Chase Media LLC.
+;
+; Left stick: walk, Fire or Up to jump, Down to call a stone. A call
+; sends Jo to the blinking survey mark and releases a stone automatically.
+; Right stick: steer Jo's trolley left/right; Fire to drop by hand.
+; Five sandstone piers lead to the rim. Avoid falling stones and long falls.
+; A rescue or the loss of all three hearts ends the run. Fire or Reset retries.
+
+        processor 6502
+        include "vcs.h"
+
+        seg.u RAM
+        org $80
+mode        ds 1                ; 0 climbing, 1 home, 2 out
+lives       ds 1
+piers       ds 1                ; number of anchored stones, 0..5
+boX         ds 1                ; left edge in TIA clocks
+boY         ds 1                ; feet, altitude in pairs of scanlines
+joX         ds 1
+stoneY      ds 1                ; altitude of falling stone's bottom; $ff = none
+air         ds 1                ; 0 supported, else index into jump curve
+peak        ds 1
+shield      ds 1
+called      ds 1
+manual      ds 1
+oldKeys     ds 1
+edges       ds 1
+frame       ds 1
+goalX       ds 1
+goalY       ds 1
+sound       ds 1
+soundTime   ds 1
+candidate   ds 1
+support     ds 1
+facing      ds 1
+walking     ds 1
+boPtr       ds 2
+stonePtr    ds 2
+tintPtr     ds 2
+grace       ds 1
+heartIndex  ds 1
+wordIndex   ds 1
+buffer      ds 1
+endDelay    ds 1
+hudRows     ds 1
+rimPtr      ds 2
+renderBand  ds 64
+westPtr     ds 2
+lamp        ds 1
+
+        seg CODE
+        org $f000
+Start
+        sei
+        cld
+        ldx #$ff
+        txs
+        lda #0
+        ldx #$7f
+.clear  sta $80,x
+        dex
+        bpl .clear
+        ldx #$2c
+.tia    sta 0,x
+        dex
+        bpl .tia
+        jsr NewGame
+        lda #2
+        sta VBLANK
+        sta WSYNC
+Frame
+        lda #2
+        sta VSYNC
+        sta WSYNC
+        sta WSYNC
+        sta WSYNC
+        lda #0
+        sta VSYNC
+        lda #43                 ; timer expires during blank line 36
+        sta TIM64T
+        jsr Controls
+        jsr SoundTick
+        jsr Prepare
+        ldx #0
+        lda boX
+        jsr Position
+        ldx #1
+        lda joX
+        jsr Position
+        ldx #3
+        lda goalX
+        jsr Position
+        ldx #4
+        lda #119                ; setting sun
+        jsr Position
+        sta WSYNC
+        sta HMOVE
+        lda #$30
+        sta NUSIZ1              ; eight-clock survey marker
+        lda facing
+        sta REFP0
+        lda #0
+        sta CTRLPF
+        lda #$82
+        sta COLUBK
+        lda #$4c
+        sta COLUPF
+.blank  lda INTIM
+        bne .blank
+        sta WSYNC
+        sta VBLANK
+
+; 14 instrument-panel lines. Hearts on the left, a real five-row
+; readout on the right; the two halves are written separately.
+        sta WSYNC
+        sta WSYNC
+        ldx heartIndex
+        ldy wordIndex
+        lda #5
+        sta hudRows
+HudRow
+        REPEAT 2
+        sta WSYNC
+        lda #$4c
+        sta COLUPF
+        lda Heart0,x
+        sta PF0
+        lda Heart1,x
+        sta PF1
+        lda Heart2,x
+        sta PF2
+        nop
+        lda Word0,y
+        sta PF0
+        lda Word1,y
+        sta PF1
+        lda #$1e
+        sta COLUPF
+        lda Word2,y
+        sta PF2
+        REPEND
+        inx
+        iny
+        dec hudRows
+        bne HudRow
+        sta WSYNC
+        lda #0
+        sta PF0
+        sta PF1
+        sta PF2
+        sta WSYNC
+
+; 24-line twilight panorama: mesas, a setting sun and distant buttes.
+SkyStart
+        lda #$30
+        sta CTRLPF
+        ldx #0
+SkyRow
+        REPEAT 2
+        sta WSYNC
+        lda SkyBack,x
+        sta COLUBK
+        lda SkyInk,x
+        sta COLUPF
+        lda Sky0,x
+        sta PF0
+        lda Sky1,x
+        sta PF1
+        lda Sky2,x
+        sta PF2
+        lda Sun,x
+        sta ENABL
+        lda Sky3,x
+        sta PF0
+        lda Sky4,x
+        sta PF1
+        lda Sky5,x
+        sta PF2
+        REPEND
+        inx
+        cpx #12
+        bne SkyRow
+; Fourteen lines of Jo on the cable and four of the gantry itself.
+        ldx #0
+JoRow
+        sta WSYNC
+        lda #0
+        sta PF0
+        sta PF1
+        sta PF2
+        sta ENABL
+        lda #$34
+        sta COLUBK
+        lda JoGfx,x
+        sta GRP1
+        lda JoInk,x
+        sta COLUP1
+        lda Mark,x
+        and lamp
+        sta ENAM1
+        sta WSYNC
+        inx
+        cpx #7
+        bne JoRow
+        sta WSYNC
+        lda #$1c
+        sta COLUPF
+        lda #$ff
+        sta PF0
+        sta PF1
+        sta PF2
+        lda #0
+        sta GRP1
+        sta ENAM1
+        sta WSYNC
+        lda #$55
+        sta PF1
+        sta PF2
+        sta WSYNC
+        lda #$32
+        sta COLUPF
+        lda #$ff
+        sta PF1
+        sta PF2
+        sta WSYNC
+        lda #$58
+        sta COLUBK
+        lda #$0e
+        sta COLUP1
+        lda #$46
+        sta COLUPF
+        ldy #63
+        lda piers
+        asl
+        asl
+        asl
+        ora #7
+        tax
+        lda (boPtr),y
+        jmp WorldFirst
+
+; Eight strata x eight double lines. Restore each left register after
+; hblank, then rewrite for the right half behind the passing beam.
+; X = piers * 8 + stratum. All timing-sensitive tables fit in pages.
+        align 256
+WorldFirst
+        sta WSYNC
+        sta GRP0
+        lda (westPtr),y
+        sta PF0
+        sta ENAM1               ; bit 1 hides in PF0's unused nibble
+        lda West1,x
+        sta PF1
+        lda (tintPtr),y
+        sta COLUP0
+        lda West2,x
+        sta PF2
+        lda East0,x
+        sta PF0
+        lda East1,x
+        sta PF1
+        lda (rimPtr),y
+        sta PF2
+        lda GorgeSky,y
+        sta COLUBK
+        lda (stonePtr),y
+        sta WSYNC
+        sta GRP1
+        lda Layers,y
+        sta COLUPF
+        lda (westPtr),y
+        sta PF0
+        lda West1,x
+        sta PF1
+        lda West2,x
+        sta PF2
+        lda East0,x
+        sta PF0
+        lda East1,x
+        sta PF1
+        lda (rimPtr),y
+        sta PF2
+        dey
+        bmi WorldDone
+        ldx renderBand,y
+        lda (boPtr),y
+        jmp WorldFirst
+WorldDone
+        sta WSYNC
+        lda #0
+        sta GRP0
+        sta GRP1
+        sta ENAM1
+        lda #$0e
+        sta COLUBK
+        lda #$f0
+        sta PF0
+        lda #$a5
+        sta PF1
+        lda #$db
+        sta PF2
+        lda #$38
+        sta COLUPF
+        sta WSYNC
+        lda #$2a
+        sta COLUBK
+        sta WSYNC
+        lda #$26
+        sta COLUBK
+        ldx #5
+.soil   sta WSYNC
+        dex
+        bne .soil
+        sta WSYNC
+        lda #2
+        sta VBLANK
+        lda #0
+        sta PF0
+        sta PF1
+        sta PF2
+        ldx #30
+.over   sta WSYNC
+        dex
+        bne .over
+        jmp Frame
+
+; Divide by fifteen for coarse positioning, then apply signed fine motion.
+Position
+        sta WSYNC
+        sec
+.divide sbc #15
+        bcs .divide
+        eor #7
+        asl
+        asl
+        asl
+        asl
+        sta HMP0,x
+        sta RESP0,x
+        rts
+
+NewGame
+        lda #0
+        sta mode
+        sta piers
+        sta shield
+        sta called
+        sta manual
+        sta soundTime
+        sta sound
+        sta endDelay
+        sta facing
+        sta frame
+        lda #3
+        sta lives
+        lda #44
+        sta joX
+        jsr Target
+Respawn
+        lda #24
+        sta boX
+        lda #0
+        sta boY
+        sta air
+        sta peak
+        sta walking
+        sta grace
+        sta buffer
+        lda #$ff
+        sta stoneY
+        rts
+
+Controls
+        subroutine
+        lda #0
+        bit INPT4
+        bmi .nofire
+        ora #1
+.nofire bit INPT5
+        bmi .nojo
+        ora #2
+.nojo   ldx SWCHA
+        sta candidate
+        txa
+        and #$10
+        bne .noup
+        lda candidate
+        ora #1
+        sta candidate
+.noup   txa
+        and #$20
+        bne .nocall
+        lda candidate
+        ora #4
+        sta candidate
+.nocall lda oldKeys
+        eor #$ff
+        and candidate
+        sta edges
+        lda candidate
+        sta oldKeys
+        lda SWCHB
+        lsr
+        bcs .run
+        jmp NewGame
+.run    inc frame
+        lda mode
+        beq Play
+        lda endDelay
+        beq .retry
+        dec endDelay
+        rts
+.retry  lda edges
+        and #3
+        beq .ret
+        jmp NewGame
+.ret    rts
+Play
+        subroutine
+        lda shield
+        beq .walk
+        dec shield
+.walk   lda #0
+        sta walking
+        lda buffer
+        beq .jumpKey
+        dec buffer
+.jumpKey lda edges
+        and #1
+        beq .move
+        lda #5
+        sta buffer
+.move
+        lda boX
+        sta candidate
+        lda SWCHA
+        and #$c0
+        cmp #$40
+        beq .right
+        cmp #$80
+        bne .support
+        lda boX
+        cmp #20
+        beq .support
+        dec candidate
+        lda #8
+        bne .try
+.right  lda boX
+        cmp #149
+        beq .support
+        inc candidate
+        lda #0
+.try    sta facing
+        jsr Height
+        cmp boY
+        beq .allow
+        bcs .support             ; cannot walk through a tall riser
+.allow  lda candidate
+        sta boX
+        inc walking
+.support lda boX
+        sta candidate
+        jsr Height
+        sta support
+        lda air
+        beq .grounded
+        lda grace
+        beq .flight
+        dec grace
+        lda buffer
+        bne .launch
+        beq .flight
+.grounded
+        lda boY
+        cmp support
+        beq .onRock
+        bcc .onRock              ; a new pier can lift shielded Bo
+        sta peak
+        lda #16
+        sta air
+        lda buffer
+        bne .launch
+        beq .flight
+.onRock lda support
+        sta boY
+        sta peak
+        lda #4
+        sta grace
+        lda buffer
+        beq .arrival
+.launch lda #0
+        sta grace
+        sta buffer
+        lda #1
+        sta air
+        ldx #1
+        jsr Chime
+.flight ldx air
+        lda Rise-1,x
+        bmi .down
+        clc
+        adc boY
+        sta boY
+        sta peak
+        inc air
+        bne .arrival
+.down   clc
+        adc boY
+        bcc .land
+        cmp support
+        beq .land
+        bcc .land
+        sta boY
+        cpx #28
+        beq .arrival
+        inc air
+        bne .arrival
+.land   lda #0
+        sta air
+        lda support
+        sta boY
+        lda peak
+        sec
+        sbc support
+        cmp #25
+        bcc .arrival
+        jsr Hit
+.arrival
+        lda mode
+        bne .ret
+        lda boX
+        cmp #140
+        bcc Trolley
+        lda boY
+        cmp #48
+        bne Trolley
+        lda air
+        bne Trolley
+        lda #1
+        sta mode
+        lda #40
+        sta endDelay
+        ldx #5
+        jmp Chime
+.ret    rts
+
+; Physical geometry uses the same 4-clock cells as the visible piers.
+Height
+        lda candidate
+        clc
+        adc #4
+        cmp #144
+        bcs .rim
+        ldx piers
+        beq .sand
+.pier   cmp PierX-1,x
+        bcc .next
+        cmp PierEnd-1,x
+        bcs .sand
+        lda Heights-1,x
+        rts
+.next   dex
+        bne .pier
+.sand   lda #0
+        rts
+.rim    lda #48
+        rts
+
+Trolley
+        subroutine
+        lda stoneY
+        cmp #$ff
+        bne Falling
+        lda piers
+        cmp #5
+        bcc .requests
+        lda joX
+        cmp goalX
+        beq .park
+        inc joX
+        rts
+.requests
+        lda edges
+        and #4
+        beq .sticks
+        lda #0
+        sta manual
+        lda #1
+        sta called
+        bne .autopilot
+.sticks lda SWCHA
+        and #$0c
+        cmp #4
+        beq .right
+        cmp #8
+        bne .steer
+        lda joX
+        cmp #30
+        beq .capture
+        dec joX
+        bne .capture
+.right  lda joX
+        cmp #136
+        beq .capture
+        inc joX
+.capture lda #1
+        sta manual
+        lda #0
+        sta called
+.steer  lda manual
+        bne .button
+.autopilot lda joX
+        cmp goalX
+        beq .ready
+        bcc .east
+        dec joX
+        bne .button
+.east   inc joX
+        bne .button
+.ready  lda called
+        bne Release
+.button lda edges
+        and #2
+        bne Release
+.park   rts
+Release
+        lda #0
+        sta called
+        lda #58
+        sta stoneY
+        ldx #2
+        jmp Chime
+Falling
+        lda edges
+        and #4
+        beq .drop
+        lda #1
+        sta called
+        lda #0
+        sta manual
+.drop
+        dec stoneY
+        lda shield
+        bne .contact
+        lda joX
+        clc
+        adc #6
+        cmp boX
+        bcc .contact
+        lda boX
+        clc
+        adc #6
+        cmp joX
+        bcc .contact
+        lda boY
+        clc
+        adc #8
+        cmp stoneY
+        bcc .contact
+        lda stoneY
+        clc
+        adc #4
+        cmp boY
+        bcc .contact
+        jmp Hit
+.contact
+        lda stoneY
+        cmp goalY
+        bne .floor
+        lda joX
+        sec
+        sbc goalX
+        clc
+        adc #5
+        cmp #11
+        bcs .floor
+        inc piers
+        lda #0
+        sta manual
+        jsr Target
+        ldx #3
+        bne .vanish
+.floor  lda joX
+        sta candidate
+        jsr Height
+        cmp stoneY
+        bcc .done
+        ldx #2
+.vanish lda #$ff
+        sta stoneY
+        jmp Chime
+.done   rts
+Hit
+        subroutine
+        lda shield
+        bne .done
+        dec lives
+        beq .out
+        jsr Respawn
+        lda #68
+        sta shield
+        ldx #4
+        jmp Chime
+.out    lda #2
+        sta mode
+        lda #40
+        sta endDelay
+        ldx #6
+        jmp Chime
+.done   rts
+Target
+        subroutine
+        ldx piers
+        lda DockX,x
+        sta goalX
+        lda Heights,x
+        sta goalY
+        txa
+        asl
+        asl
+        asl
+        ora #7
+        ldy #63
+.band   REPEAT 8
+        sta renderBand,y
+        dey
+        REPEND
+        bmi .done
+        sec
+        sbc #1
+        jmp .band
+.done
+        rts
+
+Prepare
+        subroutine
+        lda #>Actors
+        sta boPtr+1
+        lda #>Inks
+        sta tintPtr+1
+        sta stonePtr+1
+        lda frame
+        lsr
+        lsr
+        lsr
+        and #2
+        sta lamp
+        lda #<Standing
+        ldx walking
+        beq .pose
+        ldx frame
+        txa
+        and #8
+        beq .normal
+        lda #<Stride
+        bne .pose
+.normal lda #<Standing
+.pose   ldx air
+        beq .blink
+        lda #<Stride
+.blink  ldx shield
+        beq .base
+        ldx frame
+        pha
+        txa
+        and #4
+        beq .show
+        pla
+        lda #0
+        sta boPtr
+        beq .tint
+.show   pla
+.base   sec
+        sbc boY
+        sta boPtr
+.tint   lda #<Costume
+        sec
+        sbc boY
+        sta tintPtr
+        ldx stoneY
+        cpx #$ff
+        bne .falling
+        lda #0
+        ldx piers
+        cpx #5
+        beq .rock
+        lda #>Rig
+        sta stonePtr+1
+        lda #<Rig
+        jmp .rock
+.falling
+        lda #<Boulder
+        sec
+        sbc stoneY
+.rock   sta stonePtr
+        lda #>RimA
+        sta rimPtr+1
+        lda #<RimA
+        ldx piers
+        cpx #5
+        bne .rim
+        lda #<RimB
+.rim    sta rimPtr
+        lda WestLo,x
+        sta westPtr
+        lda WestHi,x
+        sta westPtr+1
+        lda lives
+        asl
+        asl
+        clc
+        adc lives
+        sta heartIndex
+        lda mode
+        asl
+        asl
+        clc
+        adc mode
+        sta wordIndex
+        rts
+
+Chime   stx sound
+        lda Lengths,x
+        sta soundTime
+        rts
+SoundTick
+        lda soundTime
+        beq .off
+        dec soundTime
+        ldx sound
+        lda Voice,x
+        sta AUDC0
+        lda soundTime
+        lsr
+        lsr
+        cpx #5
+        bcc .sweep
+        lsr
+        and #3
+        tay
+        lda HomeNotes,y
+        cpx #5
+        beq .freq
+        lda LostNotes,y
+        jmp .freq
+.sweep  clc
+        adc Pitch,x
+.freq   sta AUDF0
+        lda soundTime
+        cmp #6
+        bcc .vol
+        lda #6
+.vol    sta AUDV0
+        rts
+.off    sta AUDV0
+        rts
+
+Rise    byte 2,2,2,1,1,1,1,1,1,1,0,0,0,0,0
+        byte $ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$ff,$fe,$fe,$fe,$fe
+PierX   byte 40,60,80,100,120
+PierEnd byte 56,76,96,116,136
+DockX   byte 44,64,84,104,124,146
+Heights byte 8,16,24,32,40,48
+Lengths byte 0,12,14,21,26,64,64
+Voice   byte 0,4,8,12,3,4,12
+Pitch   byte 0,7,12,9,19
+HomeNotes byte 6,9,12,16
+LostNotes byte 30,24,19,14
+JoGfx   byte $3c,$7e,$38,$3c,$7e,$5a,$66
+JoInk   byte $18,$1c,$2e,$2a,$ce,$c8,$02
+Mark    byte 0,0,0,0,2,0,2
+Sun     byte 0,0,0,2,2,2,2,0,0,0,0,0
+SkyBack byte $84,$84,$86,$86,$66,$66,$48,$48,$38,$38,$38,$34
+SkyInk  byte $9a,$9a,$8c,$8c,$1c,$1c,$1c,$62,$62,$64,$64,$54
+
+; Pier masks indexed by (built * 8 + altitude / 8). Each is a complete
+; horizontal slice. The socket at the far right is the only 48-high ledge.
+        align 256
+West1
+        REPEAT 6
+        IF (.-West1) = 0
+        byte 0,0,0,0,0,0,0,0
+        ELSE
+        byte $03,0,0,0,0,0,0,0
+        ENDIF
+        REPEND
+West2   byte 0,0,0,0,0,0,0,0
+        byte $03,0,0,0,0,0,0,0
+        REPEAT 4
+        byte $7b,$78,0,0,0,0,0,0
+        REPEND
+East0
+        REPEAT 3
+        byte 0,0,0,0,0,0,0,0
+        REPEND
+        REPEAT 3
+        byte $f0,$f0,$f0,0,0,0,0,0
+        REPEND
+East1
+        REPEAT 4
+        byte 0,0,0,0,0,0,0,0
+        REPEND
+        byte $78,$78,$78,$78,0,0,0,0
+        byte $7b,$7b,$7b,$7b,$03,0,0,0
+        align 256
+Layers  byte $38,$36,$36,$34,$26,$34,$38,$2c
+        byte $46,$34,$34,$36,$46,$36,$38,$2c
+        byte $36,$36,$46,$34,$34,$36,$38,$2c
+        byte $46,$34,$36,$36,$26,$34,$38,$2c
+        byte $36,$46,$34,$36,$36,$34,$38,$2c
+        byte $46,$36,$36,$34,$26,$34,$38,$2c
+        byte $2c,$2c,$28,$28,$28,$2c,$1e,$1c
+        byte $1c,$1c,$1e,$1e,$28,$28,$36,$38
+GorgeSky
+        REPEAT 8
+        byte $70
+        REPEND
+        REPEAT 8
+        byte $72
+        REPEND
+        REPEAT 10
+        byte $74
+        REPEND
+        REPEAT 11
+        byte $64
+        REPEND
+        REPEAT 11
+        byte $66
+        REPEND
+        REPEAT 9
+        byte $56
+        REPEND
+        REPEAT 7
+        byte $58
+        REPEND
+
+; All indirect sprite windows have 63 clear rows on either side, so
+; the kernel never clips by branching and never crosses a page.
+        align 256
+Actors  ds 64,0
+Standing byte $66,$24,$34,$3c,$76,$3c,$3e,$7c,$38
+        ds 87,0
+Stride  byte $c3,$42,$24,$3c,$6e,$3c,$3e,$7c,$38
+        align 256
+Inks    ds 64,0
+Costume byte $02,$88,$8a,$46,$48,$2c,$2e,$1a,$1c
+        ds 87,0
+Boulder byte $7c,$ee,$ff,$7e,$38
+
+; Survey-panel and panorama data (20 bits per half, in TIA bit order).
+        align 256
+Heart0  byte 0,0,0,0,0,$40,$e0,$e0,$c0,$80,$40,$e0,$e0,$c0,$80,$40,$e0,$e0,$c0,$80
+Heart1  byte 0,0,0,0,0,$80,$c0,$c0,$80,0,$8a,$df,$df,$8e,$04,$8a,$df,$df,$8e,$04
+Heart2  byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,$14,$3e,$3e,$1c,$08
+Word0   byte $70,$10,$10,$10,$70,$50,$50,$70,$50,$50,$70,$50,$50,$50,$70
+Word1   byte $8e,$84,$84,$84,$ee,$ea,$ae,$ae,$aa,$ea,$ae,$a4,$a4,$a4,$e4
+Word2   byte $35,$57,$37,$55,$35,$27,$21,$23,$01,$27,0,0,0,0,0
+Sky0    byte 0,$10,0,0,0,0,0,$30,$70,$f0,$f0,$f0
+Sky1    byte 0,$04,$0e,0,0,0,0,$06,$0f,$1f,$ff,$ff
+Sky2    byte 0,0,0,0,0,0,0,0,$81,$c3,$e7,$ff
+Sky3    byte 0,0,0,$80,0,0,0,$10,$30,$70,$f0,$f0
+Sky4    byte 0,0,0,$80,0,0,0,$03,$07,$0f,$3f,$ff
+Sky5    byte 0,0,0,0,0,0,0,$80,$c0,$e0,$f7,$ff
+
+        align 256
+        MAC EAST_RIM
+        byte $f0|{1},$f0|{1},$f0|{1},$e0|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1}
+        byte $f0|{1},$f0|{1},$f0|{1},$f0|{1},$d0|{1},$b0|{1},$f0|{1},$f0|{1}
+        byte $f0|{1},$f0|{1},$70|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1}
+        byte $f0|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1},$d0|{1},$f0|{1},$f0|{1}
+        byte $f0|{1},$f0|{1},$b0|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1},$f0|{1}
+        byte $f0,$f0,$f0,$f0,$e0,$f0,$f0,$f0
+        byte $40,$40,$40,$40,$40,$40,$60,$70
+        byte $78,$7c,$7c,$40,0,0,0,0
+        ENDM
+RimA    EAST_RIM 0
+RimB    EAST_RIM 3
+Rig     ds 51,0
+        byte $18,$3c,$24,$1c,$08,$08,$08,$08,$08,$08,$08,$08,$08
+WestLo  byte <WestA,<WestB,<WestC,<WestD,<WestE,<WestF
+WestHi  byte >WestA,>WestB,>WestC,>WestD,>WestE,>WestF
+
+; The white double dash marks the NEXT socket, not the trolley. Embedding
+; that bit in the rim profile costs just one extra store in the kernel.
+        MAC WEST_RIM
+        byte $f0,$f0,$70,$70,$70,$30,$30,$70
+        byte $70|{1},$70,$30|{1},$30,$30,$30,$70,$30
+        byte $30|{2},$30,$30|{2},$10,$10,$10,$30,$30
+        byte $30|{3},$30,$30|{3},$70,$70,$70,$70,$70
+        byte $70|{4},$70,$30|{4},$30,$30,$30,$30,$30
+        byte $30|{5},$30,$70|{5},$70,$70,$30,$30,$30
+        byte $30,$30,$30,$30,$10,$10,0,0
+        byte 0,0,0,0,0,0,0,0
+        ENDM
+        align 256
+WestA   WEST_RIM 2,0,0,0,0
+WestB   WEST_RIM 0,2,0,0,0
+WestC   WEST_RIM 0,0,2,0,0
+WestD   WEST_RIM 0,0,0,2,0
+WestE   WEST_RIM 0,0,0,0,2
+WestF   WEST_RIM 0,0,0,0,0
+
+        IF * > $fffa
+        ERR
+        ENDIF
+        org $fffa
+        word Start,Start,Start
+        end

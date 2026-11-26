@@ -15,6 +15,7 @@
 <body>
   <main>
     <div id="javatari-screen"></div>
+    <p id="guide" hidden></p>
     <p id="status" role="status">Loading cartridge&hellip;</p>
     <noscript>Enable JavaScript to play these cartridges.</noscript>
   </main>
@@ -34,6 +35,9 @@
       ["super-step-bros", "Super Step Bros."],
       ["skateboard-steve", "The Adventures of Grumpy Gramps & Skateboard Steve"],
       ["simon-says", "Simon Says"],
+      ["super-step-bros-revamped", "Super Step Bros.: Switchback Rescue (Revamped)"],
+      ["skateboard-steve-revamped", "Skateboard Steve: Flowerpot Alley (Revamped)"],
+      ["simon-says-revamped", "Simon Says: Echo (Revamped)"],
     ]);
     const id = new URLSearchParams(location.search).get("game");
     const statusLine = document.getElementById("status");
@@ -45,6 +49,16 @@
         statusLine.textContent = "Cartridge not found. Choose a game on the Atari homebrew article.";
       } else {
         document.title = games.get(id) + " | Atari 2600";
+        const guides = {
+          "super-step-bros-revamped": "Help Bo cross the canyon. Walk with Left/Right and jump with Up or fire (Space). Press Down to call Jo for a rock, or have a partner steer Jo with F/H and drop with A. Stay out from under falling rocks. Build five piers, then jump to the flag.",
+          "skateboard-steve-revamped": "Skate left or right and hold fire (Space) to push faster. Dodge Gramps' flowerpots: staying on the board earns points, and a clean dodge earns two more. A second player can move Gramps with F/H and drop with G or A; after three idle seconds he plays himself. Three hits end the run. Press P1 fire or Game Reset to skate again.",
+          "simon-says-revamped": "Space starts solo; A starts a two-player duel. Watch the four pads and repeat their directions, releasing between notes. Solo grows to eight notes. In a duel, blue plays first (arrows), amber second (T/F/G/H); fewest mistakes wins, then fastest time. The result strip shows the winner's color, white for a tie or red for a solo miss. Game Reset returns to the lobby.",
+        };
+        if (guides[id]) {
+          const guide = document.getElementById("guide");
+          guide.textContent = guides[id];
+          guide.hidden = false;
+        }
         Javatari.ALLOW_URL_PARAMETERS = false;
         Javatari.CARTRIDGE_CHANGE_DISABLED = true;
         Javatari.CARTRIDGE_SHOW_RECENT = false;

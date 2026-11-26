@@ -48,17 +48,54 @@ The picker icons in `public/atari/icons` depict Bo and Steve using the ROMs'
 sprite silhouettes and Simon Says using its blue/yellow/red/green sequence.
 Browsers with customizable native selects also show the art in each menu row;
 platform-owned menus retain the game names and normal keyboard controls.
-The three 4 KiB
+The three original 4 KiB
 cartridges in `public/atari/roms` and their DASM sources in `content/atari`
 come from the author's [2015 archive](https://www.old.taylorchasewhite.com/wp-content/uploads/Atari-2600-Roms-Source-Code.zip).
 Original credits are preserved; the other students' projects are not included.
+The **Revamped editions** group contains three new NTSC 4 KiB cartridges.
+Their source is separate, under `content/atari/revamped`. Originals are not
+inputs to the new builds and are never overwritten.
 `public/atari/javatari` contains the unmodified [Javatari 5.0.4 embedded
 release](https://github.com/ppeccin/javatari.js/tree/f954960ddfbd8b8645de447bc7dc7a1eda066877/release/stable/5.0/embedded)
 and its AGPLv3 license. The player serves the emulator and ROMs locally.
 
 For a standalone player or a WordPress Custom HTML block, link or embed
 `https://taylorchasewhite.com/atari/play.html?game=super-step-bros`.
-The other cartridge IDs are `skateboard-steve` and `simon-says`.
+The other original cartridge IDs are `skateboard-steve` and `simon-says`.
+Append `-revamped` to any of the three IDs for the new edition.
+
+**Super Step Bros.: Switchback Rescue** keeps Bo and Jo's canyon rescue.
+Walk with Left/Right and jump with Up or Space. Call for a rock with Down
+when playing alone, or have a partner steer Jo with F/H and drop with A.
+Dodge the falling rocks, build five piers and jump to the flag.
+
+**Skateboard Steve: Flowerpot Alley** keeps Steve on the sidewalk and Gramps
+above. Steer with Left/Right; hold Space to push faster. Survive for points
+and earn two more per dodged flowerpot. A second player can move Gramps with
+F/H and drop pots with G or A; after three idle seconds the computer takes
+over. Three hits end the run. P1 fire or Game Reset starts a new one.
+
+**Simon Says: Echo** keeps the original right, left, down, up opening.
+The four arrow-shaped pads flash and sound a note; release the stick between
+answers. Player 1 fire (Space) starts a solo ladder from four to eight notes.
+Player 2 fire (A) starts a duel: both repeat the same sequence, first with
+the arrows, then with T/F/G/H. Fewest mistakes wins, then quickest response;
+equal scores and times tie. Either fire button starts a fresh game from the
+result screen. Game Reset returns to the lobby.
+
+To rebuild the three new ROMs, install
+[DASM v2.20.18](https://github.com/dasm-assembler/dasm/releases/tag/v2.20.18).
+Run the following from `next-site` in PowerShell with `dasm` on your PATH
+(or pass `-Assembler` with its executable path). Use `-Check` to assemble
+into a temporary file and compare each ROM byte-for-byte without replacing it:
+
+```powershell
+.\content\atari\revamped\build.ps1 -Check
+```
+
+The vendored `vcs.h` and `macro.h` come from that release's
+[`machines/atari2600`](https://github.com/dasm-assembler/dasm/tree/v2.20.18/machines/atari2600)
+directory; its license is included alongside them.
 
 To run the player directly on the legacy WordPress site, including when the
 Next.js site is unavailable, build a plugin ZIP from the repository root:

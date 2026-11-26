@@ -1,0 +1,950 @@
+; GRUMPY GRAMPS & SKATEBOARD STEVE: FLOWERPOT ALLEY
+; A new NTSC cartridge for Taylor White / Burt Haworth's 2014 VCS game.
+; Left stick: skate left/right, hold fire to push faster.
+; Right stick: walk the balcony; down or fire drops a pot. Leave the
+; controller idle for three seconds and Gramps takes over again.
+; Stay upright: +1 per 50 frames, +2 per clean dodge, three hearts.
+; At WIPEOUT use left fire to ride again; console Reset starts a new run.
+
+        processor 6502
+NO_ILLEGAL_OPCODES = 1
+        include "vcs.h"
+        include "macro.h"
+
+MIN_X   = 6
+MAX_X   = 138
+NO_POT  = $ff
+ROWS    = 60
+
+        SEG.U RAM
+        ORG $80
+lives       ds 1
+score       ds 1        ; packed BCD tens/units
+hundreds    ds 1
+steveX      ds 1
+grampsX     ds 1
+potX        ds 1
+potY        ds 1        ; first logical row, or NO_POT
+manual      ds 1        ; time remaining on right joystick takeover
+cooldown    ds 1
+grace       ds 1
+clock       ds 1
+ticks       ds 1
+fraction    ds 1
+dodges      ds 1
+direction   ds 1
+steveFace   ds 1
+grampsFace  ds 1
+kick        ds 1
+rollPose    ds 2
+oldPose     ds 2
+soundKind   ds 1
+soundTime   ds 1
+seed        ds 1
+fireLock    ds 1
+joy         ds 1
+count       ds 1
+ink         ds 1
+digitA      ds 1
+digitB      ds 1
+digitC      ds 1
+heartIndex  ds 1
+hudLeft     ds 5
+hudMid      ds 5
+pots        ds ROWS+7   ; trailing rows clip a departing pot without a branch
+
+        SEG CODE
+        ORG $f000
+Start
+        CLEAN_START
+        jsr NewRound
+        lda #2
+        sta VBLANK
+Frame
+        lda #2
+        sta VSYNC
+        sta WSYNC
+        sta WSYNC
+        sta WSYNC
+        lda #0
+        sta VSYNC
+        lda #44
+        sta TIM64T
+        jsr Update
+        jsr Prepare
+        lda #5          ; double-width characters, single copy
+        sta NUSIZ0
+        sta NUSIZ1
+        lda grampsFace
+        sta REFP0
+        lda #0
+        sta REFP1
+        ldx #0
+        lda grampsX
+        jsr Position
+        ldx #1
+        lda #28         ; P1's sunset is behind Gramps in TIA priority
+        jsr Position
+        sta WSYNC
+        sta HMOVE
+        lda #0
+        sta GRP0
+        sta GRP1
+        sta HMCLR
+        sta CXCLR
+        sta PF0
+        sta PF1
+        sta PF2
+        lda #$7a
+        sta COLUBK
+        lda #$1e
+        sta COLUP0
+        lda #$4c
+        sta COLUP1
+        lda #2          ; independent HUD colors, non-reflected halves
+        sta CTRLPF
+WaitBlank
+        lda INTIM
+        bne WaitBlank
+        sta WSYNC
+        sta VBLANK
+
+; 192 visible lines: 20 scoreboard, 32 rooftop, 8 balcony, 120 court, 12 road.
+        sta WSYNC
+        lda #$82
+        sta COLUBK
+        ldx #0
+        ldy heartIndex
+        lda #3
+        sta count
+        sta WSYNC
+HudLine
+        lda #0
+        sta PF0
+        lda hudLeft,x
+        sta PF1
+        lda hudMid,x
+        sta PF2
+        nop
+        nop
+        nop
+        nop
+        lda Heart0,y
+        sta PF0
+        lda Heart1,y
+        sta PF1
+        lda Heart2,y
+        sta PF2
+        dec count
+        bne HudRepeat
+        lda #3
+        sta count
+        iny
+        inx
+        cpx #5
+        beq HudDone
+HudRepeat
+        sta WSYNC
+        jmp HudLine
+HudDone
+        sta WSYNC       ; 17
+        lda #0
+        sta PF0
+        sta PF1
+        sta PF2
+        sta WSYNC
+        lda #$94
+        sta COLUBK
+        sta WSYNC
+        lda #$18
+        sta COLUBK
+        sta WSYNC       ; 20
+        lda #1
+        sta CTRLPF
+        lda #$74
+        sta COLUBK
+        lda #$98
+        sta COLUPF
+        lda #$08
+        sta PF1
+        lda #$40
+        sta PF2
+        sta WSYNC
+        sta WSYNC
+        lda #0
+        sta PF1
+        sta PF2
+        sta WSYNC
+        ldy #0
+OldLine
+        sta WSYNC
+        lda (oldPose),y
+        sta GRP0
+        lda OldInk,y
+        sta COLUP0
+        lda Sundisc,y
+        sta GRP1
+        lda SunInk,y
+        sta COLUP1
+        sta WSYNC
+        lda Sky,y
+        sta COLUBK
+        lda Cloud,y
+        sta PF1
+        lda Vapor,y
+        sta PF2
+        iny
+        cpy #14
+        bne OldLine
+        sta WSYNC       ; 52: copper balcony and its iron rivets
+        lda #0
+        sta GRP1
+        sta GRP0
+        sta PF0
+        sta PF1
+        sta PF2
+        lda #$2a
+        sta COLUBK
+        sta WSYNC
+        lda #$26
+        sta COLUBK
+        sta WSYNC
+        lda #$14
+        sta COLUBK
+        lda #$3a
+        sta COLUPF
+        lda #$90
+        sta PF0
+        lda #$22
+        sta PF1
+        lda #$44
+        sta PF2
+        lda steveX
+        sta WSYNC
+        sec
+RiderCoarse
+        sbc #15
+        bcs RiderCoarse
+        eor #7
+        asl
+        asl
+        asl
+        asl
+        nop             ; match the two indexed stores in Position
+        sta HMP0
+        sta RESP0
+        sta WSYNC
+        lda #0
+        sta PF0
+        sta PF1
+        sta PF2
+        sta CXCLR       ; discard any contact between Gramps and the decorative sun
+        sta COLUBK
+        sta NUSIZ1      ; lower court reuses both players for Steve and the pot
+        lda steveFace
+        sta REFP0
+        lda potX
+        sta WSYNC       ; 57: reposition on the black underside of the balcony
+        sec
+PotCoarse
+        sbc #15
+        bcs PotCoarse
+        eor #7
+        asl
+        asl
+        asl
+        asl
+        nop
+        sta HMP1
+        sta RESP1
+        sta WSYNC
+        sta HMOVE
+        sta WSYNC       ; 59
+        ldx #0
+        lda lives
+        bne CourtInit
+        jmp EndCard
+CourtInit
+        lda #$54
+        sta COLUBK
+        lda #$32
+        sta COLUPF
+        ldy #0
+        tya
+CourtFirst
+        sta WSYNC       ; first line of pair: players before the first skater pixel
+        sta GRP0
+        sty COLUP0
+        ldy pots,x
+        lda PotShape,y
+        sta GRP1
+        lda PotInk,y
+        sta COLUP1
+        sta WSYNC       ; second: scenery in raster order, then stage Steve
+        lda CourtSky,x
+        sta COLUBK
+        lda CourtInk,x
+        sta COLUPF
+        lda Wall0,x
+        sta PF0
+        lda Wall1,x
+        sta PF1
+        lda Wall2,x
+        sta PF2
+        inx
+        cpx #ROWS
+        beq Road
+        ldy RiderRow,x
+        lda RiderInk,y
+        sta ink
+        lda (rollPose),y
+        ldy ink
+        jmp CourtFirst
+
+Road
+        sta WSYNC       ; 180
+        ldy #0
+        sty GRP0
+        sty GRP1
+        sty PF0
+        sty PF1
+        sty PF2
+        lda #$1c
+        sta COLUBK
+        sta WSYNC
+        lda #$06
+        sta COLUBK
+        lda #$82
+        sta COLUPF
+        lda #$40
+        sta PF0
+        lda #$10
+        sta PF1
+        lda #$08
+        sta PF2
+        sta WSYNC
+        sta WSYNC
+        sta WSYNC
+        lda #$80
+        sta COLUBK
+        sta WSYNC
+        lda #$84
+        sta COLUBK
+        sty PF0
+        sty PF1
+        sty PF2
+        sta WSYNC
+        sta WSYNC
+        lda #$12
+        sta COLUPF
+        lda #$e0
+        sta PF1
+        sta WSYNC
+        sta WSYNC
+        sty PF1
+        sta WSYNC
+        sta WSYNC
+        sta WSYNC       ; 192
+        lda #2
+        sta VBLANK
+        ldx #30
+OverLine
+        sta WSYNC
+        dex
+        bne OverLine
+        jmp Frame
+
+; Each banner scanline paints a full 40-bit asymmetric playfield. No letters
+; depend on the positions of the two TIA players when the run ended.
+EndCard
+        lda #$72
+        sta COLUBK
+        lda #0
+        sta CTRLPF
+        sta PF0
+        sta PF1
+        sta PF2
+        sta WSYNC       ; 60
+        ldx #21
+        jsr Band
+        lda #$2e
+        sta COLUPF
+        lda #$42
+        sta COLUBK
+        ldy #0
+        jsr Banner      ; 82..102
+        lda #$72
+        sta COLUBK
+        ldx #13
+        jsr Band
+        lda #$ae
+        sta COLUPF
+        ldy #5
+        jsr Banner      ; 116..136
+        ldx #42
+        jsr Band
+        lda #$16
+        sta COLUBK
+        sta WSYNC
+        jmp Road
+Band
+        sta WSYNC
+        dex
+        bne Band
+        rts
+Banner
+        lda #5
+        sta digitA
+        ldx #4
+        sta WSYNC
+BannerLine
+        lda Sign0,y
+        sta PF0
+        lda Sign1,y
+        sta PF1
+        lda Sign2,y
+        sta PF2
+        nop
+        nop
+        nop
+        nop
+        lda Sign3,y
+        sta PF0
+        lda Sign4,y
+        sta PF1
+        lda Sign5,y
+        sta PF2
+        dex
+        bne BannerWait
+        ldx #4
+        iny
+        dec digitA
+        beq BannerDone
+BannerWait
+        sta WSYNC
+        jmp BannerLine
+BannerDone
+        sta WSYNC
+        lda #0
+        sta PF0
+        sta PF1
+        sta PF2
+        rts
+
+Position
+        sta WSYNC
+        sec
+Coarse
+        sbc #15
+        bcs Coarse
+        eor #7
+        asl
+        asl
+        asl
+        asl
+        sta HMP0,x
+        sta RESP0,x
+        rts
+
+NewRound
+        lda #0
+        ldx #fireLock-lives
+ClearRound
+        sta lives,x
+        dex
+        bpl ClearRound
+        lda #3
+        sta lives
+        lda #72
+        sta steveX
+        lda #94
+        sta grampsX
+        lda #105
+        sta potX
+        lda #48
+        sta cooldown
+        lda #NO_POT
+        sta potY
+        lda #$bd
+        sta seed
+        rts
+
+Update
+        lda SWCHB
+        lsr
+        bcs NoReset
+        jmp NewRound
+NoReset
+        inc clock
+        lda lives
+        bne Riding
+        bit INPT4
+        bmi Released
+        lda fireLock
+        bne NoStart
+        jmp NewRound
+Released
+        lda #0
+        sta fireLock
+NoStart
+        jmp Audio
+Riding
+        lda grace
+        beq CheckPot
+        dec grace
+        jmp NoHit
+CheckPot
+        lda potY
+        cmp #NO_POT
+        beq NoHit
+        bit CXPPMM      ; only the pot shares active scanlines with the rider
+        bpl NoHit
+        lda #NO_POT
+        sta potY
+        lda #68
+        sta grace
+        lda #45
+        sta cooldown
+        lda #2
+        sta soundKind
+        lda #19
+        sta soundTime
+        dec lives
+        bne NoHit
+        lda #1
+        sta fireLock
+        jmp Audio
+NoHit
+        inc ticks
+        lda ticks
+        cmp #50
+        bcc MoveSkater
+        lda #0
+        sta ticks
+        lda #1
+        jsr Award
+MoveSkater
+        lda SWCHA
+        sta joy
+        ldy #2
+        bit INPT4
+        bmi SpeedSet
+        iny
+SpeedSet
+        sty count
+        and #$c0
+        cmp #$c0
+        beq OldControl
+        cmp #0
+        beq OldControl
+        inc kick
+        cmp #$80
+        beq SkateLeft
+        lda #0
+        sta steveFace
+        lda steveX
+        clc
+        adc count
+        cmp #MAX_X+1
+        bcc StoreSkater
+        lda #MAX_X
+        bne StoreSkater
+SkateLeft
+        lda #8
+        sta steveFace
+        lda steveX
+        sec
+        sbc count
+        cmp #MIN_X
+        bcs StoreSkater
+        lda #MIN_X
+StoreSkater
+        sta steveX
+OldControl
+        lda joy
+        and #$0e
+        cmp #$0e
+        bne TakeStick
+        bit INPT5
+        bpl TakeStick
+        lda manual
+        beq Autopilot
+        dec manual
+        jmp Falling
+TakeStick
+        lda #180
+        sta manual
+        lda joy
+        and #$0c
+        cmp #$08
+        bne NotLeft
+        jsr OldLeft
+        jmp ManualDrop
+NotLeft
+        cmp #$04
+        bne ManualDrop
+        jsr OldRight
+ManualDrop
+        lda potY
+        cmp #NO_POT
+        bne Falling
+        lda cooldown
+        beq CanDrop
+        dec cooldown
+        jmp Audio
+CanDrop
+        bit INPT5
+        bpl Launch
+        lda joy
+        and #2
+        beq Launch
+        jmp Audio
+
+Autopilot
+        lda potY
+        cmp #NO_POT
+        beq Track
+        lda clock
+        and #1
+        bne Falling
+        lda grampsX     ; roam around the rider, not the opposite end of the roof
+        sec
+        sbc steveX
+        bcc PatrolBelow
+        cmp #18
+        bcc PatrolPick
+        lda #1
+        sta direction
+        bne PatrolPick
+PatrolBelow
+        cmp #$ef
+        bcs PatrolPick
+        lda #0
+        sta direction
+PatrolPick
+        lda direction
+        beq PatrolRight
+        jsr OldLeft
+        jmp Falling
+PatrolRight
+        jsr OldRight
+        jmp Falling
+Track
+        lda grampsX
+        cmp steveX
+        beq Tracked
+        bcc TrackRight
+        jsr OldLeft
+        jmp Tracked
+TrackRight
+        jsr OldRight
+Tracked
+        lda cooldown
+        beq Launch
+        dec cooldown
+        jmp Audio
+Launch
+        lda grampsX
+        clc
+        adc #4
+        sta potX
+        lda #0
+        sta potY
+        sta fraction
+        sta soundKind
+        lda #7
+        sta soundTime
+        jmp Audio
+Falling
+        lda potY
+        cmp #NO_POT
+        bne Advance
+        lda cooldown
+        beq FallDone
+        dec cooldown
+FallDone
+        jmp Audio
+Advance
+        ldx #$b8        ; 0.72 rows/frame, increasing to 1.25
+        lda hundreds
+        bne FastFall
+        lda score
+        cmp #$15
+        bcs FastFall
+        cmp #$06
+        bcc AddFrac
+        ldx #$eb
+        bne AddFrac
+FastFall
+        inc potY
+        ldx #$40
+AddFrac
+        txa
+        clc
+        adc fraction
+        sta fraction
+        lda potY
+        adc #0
+        cmp #ROWS
+        bcs Cleared
+        sta potY
+        jmp Audio
+Cleared
+        lda #NO_POT
+        sta potY
+        lda seed
+        asl
+        bcc NextSeed
+        eor #$1d
+NextSeed
+        sta seed
+        and #$1f
+        adc #20
+        sta cooldown
+        inc dodges
+        lda #1
+        sta soundKind
+        lda #9
+        sta soundTime
+        lda #2
+        jsr Award
+Audio
+        lda soundTime
+        beq Quiet
+        dec soundTime
+        ldx soundKind
+        clc
+        adc Pitch,x
+        sta AUDF0
+        lda Tone,x
+        sta AUDC0
+        lda Volume,x
+Quiet
+        sta AUDV0
+        rts
+
+OldLeft
+        lda #8
+        sta grampsFace
+        lda grampsX
+        cmp #MIN_X
+        beq LeftLimit
+        dec grampsX
+        rts
+LeftLimit
+        lda #0
+        sta direction
+        rts
+OldRight
+        lda #0
+        sta grampsFace
+        lda grampsX
+        cmp #MAX_X
+        beq RightLimit
+        inc grampsX
+        rts
+RightLimit
+        lda #1
+        sta direction
+        rts
+
+Award
+        sed
+        clc
+        adc score
+        sta score
+        cld
+        bcc Awarded
+        inc hundreds
+        lda hundreds
+        cmp #10
+        bcc Awarded
+        lda #9
+        sta hundreds
+        lda #$99
+        sta score
+Awarded
+        rts
+
+Prepare
+        lda #0
+        ldx #ROWS-1
+ErasePots
+        sta pots,x
+        dex
+        bpl ErasePots
+        ldy potY
+        cpy #NO_POT
+        beq PickPose
+        ldx #1
+PotRows
+        txa
+        sta pots,y
+        iny
+        inx
+        cpx #8
+        bne PotRows
+PickPose
+        lda #>Roll
+        sta rollPose+1
+        lda kick
+        and #8
+        beq RollNormal
+        lda #<Push
+        bne GotRoll
+RollNormal
+        lda #<Roll
+GotRoll
+        sta rollPose
+        lda grace
+        and #4
+        beq PickOld
+        lda #<Outline
+        sta rollPose
+PickOld
+        lda #>Old
+        sta oldPose+1
+        lda potY
+        cmp #NO_POT
+        bne WalkPose
+        lda cooldown
+        cmp #18
+        bcs WalkPose
+        lda #<Lift
+        bne GotOld
+WalkPose
+        lda grampsX
+        and #8
+        beq OldNormal
+        lda #<Stride
+        bne GotOld
+OldNormal
+        lda #<Old
+GotOld
+        sta oldPose
+        ldx lives
+        lda Times5,x
+        sta heartIndex
+        ldx hundreds
+        lda Times5,x
+        sta digitA
+        lda score
+        lsr
+        lsr
+        lsr
+        lsr
+        tax
+        lda Times5,x
+        sta digitB
+        lda score
+        and #$0f
+        tax
+        lda Times5,x
+        sta digitC
+        ldy #0
+HudBuild
+        ldx digitA
+        lda Font,x
+        asl
+        asl
+        asl
+        asl
+        sta ink
+        ldx digitB
+        lda Font,x
+        ora ink
+        asl
+        sta hudLeft,y
+        ldx digitC
+        lda Font,x
+        tax
+        lda Reverse3,x
+        sta hudMid,y
+        inc digitA
+        inc digitB
+        inc digitC
+        iny
+        cpy #5
+        bne HudBuild
+        rts
+
+; Keep the indexed character and kernel tables inside individual ROM pages.
+        ALIGN 256
+Roll    .byte $00,$38,$3e,$18,$1c,$18,$3a,$5c,$38,$28,$24,$46,$43,$ff,$42
+Push    .byte $00,$1c,$1f,$0c,$0e,$0c,$3c,$4e,$18,$1c,$34,$62,$22,$ff,$42
+Outline .byte $00,$18,$22,$10,$04,$08,$22,$44,$28,$20,$04,$42,$41,$81,$42
+RiderInk
+        .byte $00,$44,$46,$1c,$2e,$2c,$aa,$ae,$ac,$8a,$88,$88,$0e,$48,$0a
+Old     .byte $30,$78,$5c,$7e,$34,$38,$7c,$56,$75,$35,$35,$25,$25,$67
+Stride  .byte $30,$78,$5c,$7e,$34,$38,$7c,$56,$75,$35,$35,$29,$49,$cf
+Lift    .byte $30,$78,$5d,$7f,$35,$3e,$7c,$58,$70,$30,$34,$24,$24,$66
+OldInk  .byte $08,$0e,$1c,$08,$0e,$0a,$c4,$c6,$c4,$32,$32,$34,$34,$00
+Sky     .byte $74,$74,$76,$76,$76,$66,$66,$66,$68,$68,$58,$58,$58,$56
+Cloud   .byte $00,$00,$01,$07,$0f,$00,$00,$00,$00,$c0,$e0,$00,$00,$00
+Vapor   .byte $00,$00,$00,$01,$07,$00,$00,$00,$00,$08,$1e,$00,$00,$00
+Sundisc .byte $00,$00,$18,$3c,$7e,$ff,$ff,$ff,$7e,$00,$3c,$00,$18,$00
+SunInk  .byte $00,$00,$1e,$1e,$1c,$1c,$2c,$2a,$2a,$00,$3a,$00,$38,$00
+PotShape .byte $00,$44,$2a,$1c,$ff,$7e,$3c,$38
+PotInk   .byte $00,$c2,$b6,$c4,$2e,$36,$34,$22
+Times5   .byte 0,5,10,15,20,25,30,35,40,45
+Reverse3 .byte 0,4,2,6,1,5,3,7
+Tone     .byte 4,12,8
+Volume   .byte 3,4,7
+Pitch    .byte 8,4,7
+
+        ALIGN 256
+Font
+        .byte 7,5,5,5,7, 2,6,2,2,7, 7,1,7,4,7, 7,1,3,1,7, 5,5,7,1,1
+        .byte 7,4,7,1,7, 7,4,7,5,7, 7,1,2,2,2, 7,5,7,5,7, 7,5,7,1,7
+Heart0  .byte $00,$00,$00,$00,$00,$40,$e0,$e0,$c0,$80,$40,$e0,$e0,$c0,$80,$40,$e0,$e0,$c0,$80
+Heart1  .byte $00,$00,$00,$00,$00,$80,$c0,$c0,$80,$00,$8a,$df,$df,$8e,$04,$8a,$df,$df,$8e,$04
+Heart2  .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$14,$3e,$3e,$1c,$08
+Sign0   .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+Sign1   .byte $45,$44,$54,$54,$29,$00,$00,$00,$00,$00
+Sign2   .byte $9b,$a9,$99,$89,$8b,$77,$21,$23,$21,$71
+Sign3   .byte $30,$80,$90,$80,$30,$30,$50,$30,$50,$50
+Sign4   .byte $95,$54,$54,$54,$9c,$e0,$80,$c0,$80,$e0
+Sign5   .byte $03,$01,$01,$01,$01,$00,$00,$00,$00,$00
+
+        ALIGN 256
+CourtSky
+        ds 8,$56
+        ds 8,$58
+        ds 8,$48
+        ds 8,$4a
+        ds 8,$3a
+        ds 8,$2a
+        ds 12,$2c
+CourtInk
+        ds 12,$62
+        ds 2,$34
+        ds 14,$62
+        ds 2,$34
+        ds 10,$62
+        ds 6,$64
+        ds 8,$74
+        ds 6,$72
+; Brick jambs, recessed pairs of lit windows, and the distant roofline.
+Wall0
+        .byte $f0,$f0,$f0,$f0,$30,$30,$30,$30,$f0,$30,$30,$30,$f0,$f0,$f0
+        .byte $f0,$f0,$f0,$30,$30,$30,$30,$f0,$30,$30,$30,$f0,$f0,$f0,$f0
+        .byte $f0,$f0,$f0,$f0,$30,$30,$30,$30,$f0,$30,$30,$30,$f0,$f0,$f0
+        .byte $f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0,$f0
+Wall1
+        .byte $e0,$c0,$c0,$c0,$40,$40,$40,$40,$c0,$40,$40,$40,$e0,$e0,$c0
+        .byte $c0,$c0,$c0,$40,$40,$40,$40,$c0,$40,$40,$40,$c0,$c0,$e0,$e0
+        .byte $c0,$c0,$c0,$c0,$40,$40,$40,$41,$c1,$41,$41,$43,$c7,$c7,$c7
+        .byte $cf,$cf,$df,$df,$df,$ff,$fb,$fb,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+        ALIGN 256
+Wall2
+        .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+        .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$02,$02,$0f,$0f,$0f,$0f
+        .byte $0f,$af,$af,$eb,$ef,$ff,$f5,$f5,$ff,$ff,$ff,$ff,$ff,$ff,$ff
+RiderRow
+        ds 46,0
+        .byte 1,2,3,4,5,6,7,8,9,10,11,12,13,14
+
+        .byte "FLOWERPOT ALLEY | TAYLOR WHITE / BURT HAWORTH"
+        ORG $fffa
+        .word Start,Start,Start
