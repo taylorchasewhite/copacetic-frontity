@@ -65,11 +65,51 @@
   appearance: none;
   width: 100%;
   margin: 5px 0 0;
-  padding: 10px 32px 10px 12px;
+  padding: 10px 32px 10px 49px;
   border: 1px solid #879fa7;
   color: #18333f;
-  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath d='m2 2 5 5 5-5' fill='none' stroke='%2335525c' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center;
+  background: var(--cartridge-icon, none) no-repeat left 9px center / 32px 32px,
+    #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath d='m2 2 5 5 5-5' fill='none' stroke='%2335525c' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center;
   text-overflow: ellipsis;
+}
+.atari-arcade select:has(option[value="super-step-bros"]:checked), .atari-arcade option[value="super-step-bros"] {
+  --cartridge-icon: url("./icons/super-step-bros.svg");
+}
+.atari-arcade select:has(option[value="skateboard-steve"]:checked), .atari-arcade option[value="skateboard-steve"] {
+  --cartridge-icon: url("./icons/skateboard-steve.svg");
+}
+.atari-arcade select:has(option[value="simon-says"]:checked), .atari-arcade option[value="simon-says"] {
+  --cartridge-icon: url("./icons/simon-says.svg");
+}
+@supports selector(::picker(select)) {
+  .atari-arcade select, .atari-arcade select::picker(select) { appearance: base-select; }
+  .atari-arcade select::picker-icon { display: none; }
+  .atari-arcade select::picker(select) {
+    max-width: min(32rem, calc(100vw - 24px));
+    margin-block: 4px;
+    padding: 4px;
+    border: 1px solid #879fa7;
+    border-radius: 10px;
+    background: #fff;
+    color: #18333f;
+  }
+  .atari-arcade option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px;
+    border-radius: 6px;
+    white-space: normal;
+  }
+  .atari-arcade option::before {
+    content: "";
+    flex: 0 0 32px;
+    height: 32px;
+    background: var(--cartridge-icon) center / contain no-repeat;
+  }
+  .atari-arcade option::checkmark { order: 1; margin-inline-start: auto; }
+  .atari-arcade option:checked { background-color: #e8f3f4; }
+  .atari-arcade option:is(:hover, :focus-visible) { background-color: #d4eaed; }
 }
 .atari-arcade button {
   padding: 10px 20px;

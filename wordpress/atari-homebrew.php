@@ -2,14 +2,14 @@
 /**
  * Plugin Name: Atari Homebrew Player
  * Description: Play the three original cartridges on the Atari 2600 homebrew article.
- * Version: 1.1.1
+ * Version: 1.2.0
  */
 
 defined( 'ABSPATH' ) || exit;
 
 add_action( 'wp_enqueue_scripts', static function () {
 	if ( is_single( 'atari-2600-homebrew-programming' ) ) {
-		wp_enqueue_style( 'atari-homebrew', plugins_url( 'arcade.css', __FILE__ ), array(), '1.1.1' );
+		wp_enqueue_style( 'atari-homebrew', plugins_url( 'arcade.css', __FILE__ ), array(), '1.2.0' );
 	}
 } );
 

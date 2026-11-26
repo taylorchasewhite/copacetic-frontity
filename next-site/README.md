@@ -44,6 +44,10 @@ The [Atari homebrew article](https://taylorchasewhite.com/atari-2600-homebrew-pr
 opens the cartridge picker by default and loads the emulator only when a reader
 presses **Play game**. The picker uses the same `public/atari/arcade.css` on
 both versions of the blog; the project video is at the end of the WordPress post.
+The picker icons in `public/atari/icons` depict Bo and Steve using the ROMs'
+sprite silhouettes and Simon Says using its blue/yellow/red/green sequence.
+Browsers with customizable native selects also show the art in each menu row;
+platform-owned menus retain the game names and normal keyboard controls.
 The three 4 KiB
 cartridges in `public/atari/roms` and their DASM sources in `content/atari`
 come from the author's [2015 archive](https://www.old.taylorchasewhite.com/wp-content/uploads/Atari-2600-Roms-Source-Code.zip).
