@@ -68,14 +68,15 @@ Append `-revamped` to any of the three IDs for the new edition.
 Walk with Left/Right and jump with Up or Space. Call for a rock with Down
 when playing alone, or have a partner steer Jo with F/H and drop with A.
 Dodge the falling rocks and use the piers to reach the flag in three canyons:
-**Sunset Stair** climbs east, **Split Saddle** dips between two rises, and
-**Westward Crown** starts from a high camp and climbs west with stones
+**Sunset Stair** climbs east over warm sandstone, **Split Saddle** dips
+between grassy terraces, and **Westward Crown** climbs west from a granite camp with stones
 delivered out of climbing order. The HUD shows RIM 1–3. Reaching a flag
 carries remaining hearts to the next canyon automatically. Fire after OUT
 retries that canyon; fire after HOME or Game Reset starts the campaign over.
 
 **Skateboard Steve: Gramps' Backyard** takes place in Gramps' suburban
-backyard. Steve skates below the deck while Gramps tries to chase him out.
+backyard. Steve skates past sunlit apple trees, tulip beds and striped pool
+parasols while Gramps tries to chase him off from the deck.
 Steer with Left/Right and hold Space to push faster. Six clean dodges move
 Steve from the **Picket-Fence Yard** (apples), to the **Greenhouse Garden**
 (flowerpots), to the **Poolside Patio** (tennis balls), then back to the

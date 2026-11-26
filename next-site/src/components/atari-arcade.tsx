@@ -5,7 +5,7 @@ export function AtariArcade() {
     <details open className="atari-arcade">
       <summary><span>Homebrew arcade</span>Play the Atari cartridges</summary>
       <form action="/atari/play.html" method="get" target="atari-homebrew-screen">
-        <input type="hidden" name="v" value="2.2.0" />
+        <input type="hidden" name="v" value="2.3.0" />
         <label>
           Cartridge
           <select name="game">

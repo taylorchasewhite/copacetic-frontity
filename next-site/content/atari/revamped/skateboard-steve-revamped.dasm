@@ -109,7 +109,7 @@ Frame
         sta PF2
         lda #$7a
         sta COLUBK
-        lda #$1e
+        lda #$fe
         sta COLUP0
         lda #$4c
         sta COLUP1
@@ -123,7 +123,7 @@ WaitBlank
 
 ; 192 visible lines: 20 scoreboard, 32 porch, 8 deck, 120 yard, 12 path.
         sta WSYNC
-        lda #$82
+        lda #$a0
         sta COLUBK
         ldx #0
         ldy heartIndex
@@ -180,9 +180,9 @@ HudDone
         sta WSYNC       ; 20
         lda #1
         sta CTRLPF
-        lda #$26
+        lda #$f8
         sta COLUBK
-        lda #$28
+        lda #$fc
         sta COLUPF
         lda #$ff
         sta PF1
@@ -231,7 +231,7 @@ OldLine
         sta WSYNC
         lda #$d6
         sta COLUBK
-        lda #$24
+        lda #$f4
         sta COLUPF
         lda #$90
         sta PF0
@@ -416,7 +416,7 @@ OverLine
 ; Each banner scanline paints a full 40-bit asymmetric playfield. No letters
 ; depend on the positions of the two TIA players when the run ended.
 EndCard
-        lda #$72
+        lda #$b2
         sta COLUBK
         lda #0
         sta CTRLPF
@@ -426,23 +426,23 @@ EndCard
         sta WSYNC       ; 60
         ldx #21
         jsr Band
-        lda #$2e
+        lda #$0e
         sta COLUPF
-        lda #$42
+        lda #$b0
         sta COLUBK
         ldy #0
         jsr Banner      ; 82..102
-        lda #$72
+        lda #$b2
         sta COLUBK
         ldx #13
         jsr Band
-        lda #$ae
+        lda #$fe
         sta COLUPF
         ldy #5
         jsr Banner      ; 116..136
         ldx #42
         jsr Band
-        lda #$16
+        lda #$d8
         sta COLUBK
         sta WSYNC
         jmp Road
@@ -988,13 +988,13 @@ Roll    .byte $00,$38,$3e,$18,$1c,$18,$3a,$5c,$38,$28,$24,$46,$43,$ff,$42
 Push    .byte $00,$1c,$1f,$0c,$0e,$0c,$3c,$4e,$18,$1c,$34,$62,$22,$ff,$42
 Outline .byte $00,$18,$22,$10,$04,$08,$22,$44,$28,$20,$04,$42,$41,$81,$42
 RiderInk
-        .byte $00,$02,$82,$20,$26,$24,$80,$82,$84,$02,$04,$02,$00,$42,$00
+        .byte $40,$44,$40,$3e,$3e,$3c,$a0,$a2,$a0,$02,$a0,$02,$00,$42,$00
 Old     .byte $30,$78,$5c,$7e,$34,$38,$7c,$56,$75,$35,$35,$25,$25,$67
 Stride  .byte $30,$78,$5c,$7e,$34,$38,$7c,$56,$75,$35,$35,$29,$49,$cf
 Lift    .byte $30,$78,$5d,$7f,$35,$3e,$7c,$58,$70,$30,$34,$24,$24,$66
-OldInk  .byte $02,$08,$02,$24,$02,$06,$50,$52,$50,$02,$22,$22,$20,$00
-Siding   .byte $0a,$1e,$0e,$0e,$0c,$1e,$0e,$0e,$0c,$1e,$0e,$0e,$0c,$1e
-WindowInk .byte $28,$28,$aa,$9c,$9c,$9c,$28,$9c,$9c,$9c,$aa,$28,$28,$28
+OldInk  .byte $04,$08,$3e,$02,$3e,$3c,$b0,$b2,$b0,$f0,$22,$22,$f0,$00
+Siding   .byte $ac,$0e,$ac,$ac,$ac,$0c,$ac,$ac,$ac,$0c,$ac,$ac,$ac,$0e
+WindowInk .byte $a4,$a4,$0e,$aa,$ae,$aa,$0e,$aa,$ae,$aa,$0e,$a4,$a4,$a4
 Shutters .byte $00,$1f,$30,$36,$36,$36,$3f,$36,$36,$36,$30,$3f,$00,$00
 Panes    .byte $00,$03,$06,$06,$06,$06,$07,$06,$06,$06,$06,$07,$00,$00
 Basket   .byte $18,$18,$24,$24,$42,$42,$5a,$bd,$ff,$7e,$3c,$18,$00,$00
@@ -1042,16 +1042,10 @@ Sign5   .byte $03,$01,$01,$01,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 BANDNO  SET BANDNO+1
         ENDIF
         IF COLUMN = 1
-; Reserve the dark half of the NTSC palette for characters and hazards.
-; Open sky uses the lightest blue; landscaping keeps its original hue.
-        IF ({2} & $f0) = $90
-        .byte $9e
-        ELSE
-        .byte ({2} & $f0) | (8 + (({2} & $0c) >> 1))
-        ENDIF
+        .byte {2}
         ENDIF
         IF COLUMN = 2
-        .byte ({3} & $f0) | (6 + (({3} & $0c) >> 1))
+        .byte {3}
         ENDIF
         IF (COLUMN = 3) || (COLUMN = 5)
 VALUE   SET {4}
@@ -1074,88 +1068,88 @@ VALUE   SET ((VALUE & $33) << 2) | ((VALUE >> 2) & $33)
 ; Height, sky, ink, four edge pixels, left eight, center eight, right eight
 ; (outside in). A clean dodge advances the route, not a paint timer.
 ; Apple tree, pitched shed roof, picket gate and lawn.
-        YardBand 2,$9a,$d6,$0,$00,$00,$00
-        YardBand 2,$9a,$d6,$0,$78,$00,$00
-        YardBand 3,$9a,$c6,$3,$fc,$00,$18
-        YardBand 3,$9a,$c6,$7,$ff,$00,$7c
-        YardBand 3,$9a,$d4,$f,$ff,$80,$fe
-        YardBand 2,$9a,$c4,$f,$ff,$00,$fc
-        YardBand 2,$9a,$c2,$7,$fa,$00,$78
-        YardBand 2,$9a,$26,$0,$64,$01,$18
-        YardBand 2,$9c,$26,$0,$38,$07,$18
-        YardBand 2,$9c,$26,$0,$30,$1f,$18
-        YardBand 2,$9c,$34,$0,$30,$7f,$18
-        YardBand 2,$9c,$22,$0,$30,$ff,$18
-        YardBand 2,$ba,$2a,$0,$30,$7f,$18
-        YardBand 4,$ba,$28,$0,$30,$66,$18
-        YardBand 2,$c6,$2a,$7,$30,$7e,$1a
-        YardBand 2,$c8,$c2,$f,$e7,$bf,$ef
-        YardBand 2,$c4,$0e,$4,$44,$44,$44
-        YardBand 2,$c4,$0c,$e,$ee,$ee,$ee
+        YardBand 2,$9e,$0e,$0,$00,$38,$00
+        YardBand 2,$9e,$da,$0,$78,$00,$00
+        YardBand 3,$9e,$ca,$3,$fc,$00,$18
+        YardBand 3,$9e,$c8,$7,$ff,$00,$7c
+        YardBand 3,$9e,$d8,$f,$ff,$80,$fe
+        YardBand 2,$9e,$c6,$f,$ff,$00,$fc
+        YardBand 2,$9e,$c4,$7,$fa,$00,$78
+        YardBand 2,$ae,$28,$0,$64,$01,$18
+        YardBand 2,$ae,$28,$0,$38,$07,$18
+        YardBand 2,$ae,$38,$0,$30,$1f,$18
+        YardBand 2,$ae,$38,$0,$30,$7f,$18
+        YardBand 2,$ae,$34,$0,$30,$ff,$18
+        YardBand 2,$bc,$fc,$0,$30,$7f,$18
+        YardBand 4,$bc,$fc,$0,$30,$66,$18
+        YardBand 2,$da,$fa,$7,$30,$7e,$1a
+        YardBand 2,$da,$c8,$f,$e7,$bf,$ef
+        YardBand 2,$ca,$0e,$4,$44,$44,$44
+        YardBand 2,$ca,$0e,$e,$ee,$ee,$ee
         YardBand 1,$ca,$0a,$f,$ff,$ff,$ff
-        YardBand 4,$c6,$0c,$e,$ee,$ee,$ee
-        YardBand 1,$c4,$0a,$f,$ff,$ff,$ff
-        YardBand 3,$c8,$0c,$e,$ee,$ee,$ee
-        YardBand 3,$c6,$d4,$2,$44,$08,$11
-        YardBand 3,$c8,$c6,$0,$10,$40,$40
-        YardBand 4,$0a,$08,$0,$10,$01,$02
+        YardBand 4,$ca,$0c,$e,$ee,$ee,$ee
+        YardBand 1,$ca,$0a,$f,$ff,$ff,$ff
+        YardBand 3,$ca,$0c,$e,$ee,$ee,$ee
+        YardBand 3,$dc,$fa,$2,$44,$08,$11
+        YardBand 3,$da,$c8,$0,$10,$40,$40
+        YardBand 4,$0c,$0a,$0,$10,$01,$02
         IF (COLUMN = 0) && ((* - YardMap) != ROWS)
         ERR
         ENDIF
 ; Glasshouse ridge, sloping glazing bars, and red tulips in wooden boxes.
-        YardBand 3,$9c,$ac,$0,$00,$00,$00
-        YardBand 2,$9c,$0e,$0,$00,$0f,$00
-        YardBand 2,$9c,$a4,$0,$00,$3f,$00
-        YardBand 2,$9c,$a4,$0,$00,$49,$00
-        YardBand 2,$9c,$a4,$0,$00,$91,$00
-        YardBand 2,$9c,$a4,$0,$01,$21,$01
-        YardBand 2,$9c,$a4,$0,$02,$41,$02
-        YardBand 2,$9c,$a4,$0,$04,$81,$04
-        YardBand 2,$9c,$a4,$0,$09,$01,$09
-        YardBand 2,$bc,$0e,$0,$1f,$ff,$1f
-        YardBand 4,$ac,$a4,$2,$09,$24,$09
-        YardBand 1,$ac,$0e,$7,$0f,$ff,$0f
-        YardBand 4,$ac,$a4,$7,$09,$24,$09
-        YardBand 2,$c8,$c4,$f,$ff,$ff,$ff
-        YardBand 2,$c6,$4a,$a,$28,$a2,$51
-        YardBand 2,$c6,$46,$e,$38,$e3,$71
-        YardBand 2,$c8,$c2,$4,$10,$41,$20
-        YardBand 2,$c8,$c2,$6,$58,$63,$68
-        YardBand 2,$c8,$36,$f,$ff,$ff,$ff
-        YardBand 3,$c8,$26,$e,$fe,$fe,$fe
-        YardBand 3,$c6,$24,$6,$7c,$7c,$7c
-        YardBand 4,$c8,$c4,$0,$40,$02,$08
-        YardBand 3,$c6,$d6,$4,$02,$20,$42
-        YardBand 5,$28,$26,$0,$20,$01,$10
+        YardBand 3,$ae,$0e,$0,$30,$00,$0c
+        YardBand 2,$ae,$0e,$0,$00,$0f,$00
+        YardBand 2,$ae,$a6,$0,$00,$3f,$00
+        YardBand 2,$ae,$a6,$0,$00,$49,$00
+        YardBand 2,$ae,$a6,$0,$00,$91,$00
+        YardBand 2,$ae,$a6,$0,$01,$21,$01
+        YardBand 2,$ae,$a6,$0,$02,$41,$02
+        YardBand 2,$ae,$a6,$0,$04,$81,$04
+        YardBand 2,$ae,$a6,$0,$09,$01,$09
+        YardBand 2,$be,$0e,$0,$1f,$ff,$1f
+        YardBand 4,$bc,$b6,$2,$09,$24,$09
+        YardBand 1,$bc,$0e,$7,$0f,$ff,$0f
+        YardBand 4,$bc,$b6,$7,$09,$24,$09
+        YardBand 2,$dc,$d8,$f,$ff,$ff,$ff
+        YardBand 2,$dc,$4c,$a,$28,$a2,$51
+        YardBand 2,$dc,$46,$e,$38,$e3,$71
+        YardBand 2,$dc,$c4,$4,$10,$41,$20
+        YardBand 2,$dc,$c4,$6,$58,$63,$68
+        YardBand 2,$da,$2c,$f,$ff,$ff,$ff
+        YardBand 3,$da,$38,$e,$fe,$fe,$fe
+        YardBand 3,$da,$36,$6,$7c,$7c,$7c
+        YardBand 4,$dc,$c8,$0,$40,$02,$08
+        YardBand 3,$da,$d8,$4,$02,$20,$42
+        YardBand 5,$fc,$fa,$0,$20,$01,$10
         IF (COLUMN = 0) && ((* - YardMap) != (2*ROWS))
         ERR
         ENDIF
 ; Striped patio parasols, clipped hedge, pool coping, water and ladder.
-        YardBand 3,$9c,$38,$0,$08,$00,$08
-        YardBand 2,$9c,$48,$0,$3e,$00,$3e
-        YardBand 2,$9c,$48,$0,$ef,$80,$ef
-        YardBand 2,$9c,$4a,$3,$cc,$c0,$cc
-        YardBand 2,$9c,$48,$f,$9c,$e0,$9c
-        YardBand 2,$9c,$44,$5,$55,$40,$55
-        YardBand 4,$9c,$26,$0,$08,$00,$08
-        YardBand 3,$ca,$c2,$f,$ff,$ff,$ff
-        YardBand 2,$c6,$c2,$d,$f6,$db,$ee
-        YardBand 2,$c4,$0c,$f,$ff,$ff,$ff
-        YardBand 2,$c4,$0c,$8,$88,$88,$88
-        YardBand 2,$c4,$0a,$f,$ff,$ff,$ff
-        YardBand 2,$0a,$04,$0,$00,$00,$48
-        YardBand 2,$0e,$88,$0,$07,$ff,$4f
-        YardBand 2,$aa,$0e,$f,$f0,$00,$78
-        YardBand 2,$aa,$0c,$f,$c3,$06,$48
-        YardBand 2,$a8,$0e,$f,$80,$00,$78
-        YardBand 2,$a8,$0c,$f,$0e,$1c,$48
-        YardBand 2,$a8,$0e,$e,$00,$00,$78
-        YardBand 2,$aa,$0c,$e,$70,$60,$00
+        YardBand 3,$9e,$fa,$0,$08,$00,$08
+        YardBand 2,$9e,$4a,$0,$3e,$00,$3e
+        YardBand 2,$9e,$3c,$0,$ef,$80,$ef
+        YardBand 2,$9e,$fe,$3,$cc,$c0,$cc
+        YardBand 2,$9e,$4a,$f,$9c,$e0,$9c
+        YardBand 2,$9e,$46,$5,$55,$40,$55
+        YardBand 4,$ae,$28,$0,$08,$00,$08
+        YardBand 3,$ca,$c8,$f,$ff,$ff,$ff
+        YardBand 2,$ca,$c6,$d,$f6,$db,$ee
+        YardBand 2,$ca,$0e,$f,$ff,$ff,$ff
+        YardBand 2,$ca,$0e,$8,$88,$88,$88
+        YardBand 2,$ca,$0c,$f,$ff,$ff,$ff
+        YardBand 2,$fc,$08,$0,$00,$00,$48
+        YardBand 2,$0e,$aa,$0,$07,$ff,$4f
+        YardBand 2,$ac,$0e,$f,$f0,$00,$78
+        YardBand 2,$ac,$ae,$f,$c3,$06,$48
+        YardBand 2,$aa,$0e,$f,$80,$00,$78
+        YardBand 2,$aa,$ae,$f,$0e,$1c,$48
+        YardBand 2,$aa,$0e,$e,$00,$00,$78
+        YardBand 2,$ac,$ae,$e,$70,$60,$00
         YardBand 2,$ac,$0e,$f,$ff,$ff,$ff
-        YardBand 2,$0a,$08,$8,$88,$88,$88
-        YardBand 4,$c8,$d4,$2,$41,$10,$24
-        YardBand 3,$c6,$c4,$0,$10,$40,$40
-        YardBand 5,$0a,$08,$0,$10,$01,$02
+        YardBand 2,$fc,$fa,$8,$88,$88,$88
+        YardBand 4,$dc,$d8,$2,$41,$10,$24
+        YardBand 3,$da,$c8,$0,$10,$40,$40
+        YardBand 5,$0c,$0a,$0,$10,$01,$02
         IF (COLUMN = 0) && ((* - YardMap) != (3*ROWS))
         ERR
         ENDIF
