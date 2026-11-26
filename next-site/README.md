@@ -38,6 +38,21 @@ of the WordPress menus. Its shared menu feeds the desktop sidebar, mobile
 drawer, vintage footer, and sitemap page. OurGov is omitted from navigation;
 its `/ourgov` page and existing feed filtering remain available unchanged.
 
+## Atari homebrew
+
+The [Atari homebrew article](https://taylorchasewhite.com/atari-2600-homebrew-programming)
+mounts the emulator only when a reader chooses a game. The three 4 KiB
+cartridges in `public/atari/roms` and their DASM sources in `content/atari`
+come from the author's [2015 archive](https://www.old.taylorchasewhite.com/wp-content/uploads/Atari-2600-Roms-Source-Code.zip).
+Original credits are preserved; the other students' projects are not included.
+`public/atari/javatari` contains the unmodified [Javatari 5.0.4 embedded
+release](https://github.com/ppeccin/javatari.js/tree/f954960ddfbd8b8645de447bc7dc7a1eda066877/release/stable/5.0/embedded)
+and its AGPLv3 license. The player serves the emulator and ROMs locally.
+
+For a standalone player or a WordPress Custom HTML block, link or embed
+`https://taylorchasewhite.com/atari/play.html?game=super-step-bros`.
+The other cartridge IDs are `skateboard-steve` and `simon-says`.
+
 ## Deployment
 
 This project deploys to Vercel as-is. Set `WP_API_URL` and

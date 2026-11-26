@@ -1,0 +1,828 @@
+;------------------------------------------------
+;	Game Stages
+;------------------------------------------------
+;	1. Attract Mode
+;		Really Fast color changes light-to dark
+;		then different color light-to-dark
+;
+;		Music notes change with the color make
+;		that classic Atari shooting noise
+;
+;	2. Main Gameplay
+;		
+;	3. Game Over
+;		
+;
+;
+;
+;------------------------------------------------
+
+
+
+
+
+
+
+
+;------------------------------------------------
+;
+; Simon Says
+; Atari VCS Game 
+; Created by White, Taylor Chase on 2014-01-08.
+;
+; Copyright (c) 2014 __Miami University__. All rights reserved.
+;
+; Use with joystick controllers
+;
+;------------------------------------------------
+	processor 	6502
+	include 	vcs.h
+	include 	macro.h
+
+;------------------------------------------------
+; Constants
+;------------------------------------------------
+
+; colors
+BLACK 	= #$00
+BLUE 	= #$80
+RED 	= #$40
+YELLOW	= #$1E
+GREEN	= #$D0
+PURPLE	= #$60
+PINK	= #$50
+ORANGE	= #$20
+TEAL	= #$B5
+DRKBLU = #$01
+LGHTBLU = #$EF
+
+PLAYER_0	= #$DE
+PLAYER_1	= #$4E
+
+; how often to change the note / colors
+FRAMES_PER_CHANGE = #40
+AFRAMES_PER_CHANGE = #2
+GO_FRAMES_PER_CHANGE = #10
+
+; mask for SWCHB
+P1_DIFF_MASK      = %10000000
+BW_MASK           = %00001000       ; black and white bit
+SELECT_MASK       = %00000010
+RESET_MASK        = %00000001
+
+
+;How often to advance the note counter
+TICKS_PER_NOTE = 10
+
+;------------------------------------------------
+;CONTROLS
+;------------------------------------------------
+P0_RIGHT 	= #%10000000 ;--Player 0 hits right
+P0_LEFT 	= #%01000000 ;--Player 0 hits left
+P0_DOWN 	= #%00100000 ;--Player 0 hits down
+P0_UP 		= #%00010000 ;--Player 0 hits up
+
+
+P1_RIGHT 	= #%00001000 ;--Player 1 hits right
+P1_LEFT		= #%00000100 ;--Player 1 hits left
+P1_DOWN		= #%00000010 ;--Player 1 hits down
+P1_UP 		= #%00000001 ;--Player 1 hits up
+;------------------------------------------------
+;Music Notes
+;------------------------------------------------
+NOTE_E = 23
+;NOTE_F = 20
+NOTE_G = 19
+NOTE_GS = 18
+NOTE_A = 17
+NOTE_B = 15
+NOTE_C = 14
+NOTE_D = 12
+NOTE_E2 = 11
+NOTE_D2 = 26
+
+;These notes signal the start of a note
+NOTEA_E = 23+32
+;NOTEA_F = 20+32
+NOTEA_G = 19+32
+NOTEA_GS = 18+32
+NOTEA_A = 17+32
+NOTEA_B = 15+32
+NOTEA_C = 14+32
+NOTEA_D = 12+32
+NOTEA_E2 = 11+32
+NOTEA_D2 = 26+32
+
+;------------------------------------------------
+; RAM
+;------------------------------------------------
+    SEG.U   variables
+    ORG     $80
+
+bgcolor		.byte	; Captures the color of the background
+frame		.byte	; Counts the frames that have gone through
+colordir 	.byte	; Used to say which direction the attract screen goes
+
+color 		.byte	; TODO: Doc - This is not really used
+freq  		.byte	; TODO: Doc - This is not really used
+volume 		.byte	; TODO: Doc - This is not really used
+;ticks 		.byte	; TODO: Doc - Forget what this is used for
+;note  		.byte	; TODO: Doc - Forget what this is used for
+;looper 		.byte	; TODO: Doc - Forget what this is used for
+beatnum 	.byte	; Incremented on the frame change
+turn		.byte	; Tells whose turn it is
+temp		.byte	; Transfers input to Accum while recording player responses
+reset		.byte	; reset flag
+
+player0Ticks
+			.byte
+player1Ticks
+			.byte
+player0ResponseIndex	; Capture how many responses they have
+			.byte
+player1ResponseIndex	; Capture how many responses they have
+			.byte
+player0Wrong				; 0 if correct, 1 if wrong
+			.byte
+player1Wrong			; 0 if correct, 1 if wrong
+			.byte
+gamestate	.byte	; Gamestate Values
+					; 0			Attract
+					; 1			Main Loop
+					; 2			Game Over
+
+player0Responses	; Capture the player responses
+			.byte	; Value of byte indicates direction:
+			.byte	; 0 		Right
+			.byte	; 1			Left
+			.byte	; 2			Down
+					; 3			Up
+					
+player1Responses	; Capture the player responses
+			.byte	; Value of byte indicates direction:
+			.byte	; 0 		Right
+			.byte	; 1			Left
+			.byte	; 2			Down
+					; 3			Up
+entrance	.byte
+;------------------------------------------------
+; Start of ROM
+;------------------------------------------------
+	SEG   Bank0
+	ORG   $F000       	; 4k ROM start point
+
+Start 
+	CLEAN_START			; Clear RAM and Registers
+	
+	;Music initialization
+	;--Use a square wave for music
+	lda 	#12
+	sta 	AUDC0
+	
+	;--Initialize the note
+	lda 	#NOTE_A	; HAS TO BE THE SAME AS THE FIRST NOTE_ARRAY VAL
+	sta 	AUDF0
+	
+	lda 	#0
+	sta		gamestate		; Start in Attract mode
+	sta 	temp
+	sta		frame
+	sta		turn		; 0 for player 1, 1 for player 2
+	sta		player0Ticks
+	sta		player1Ticks
+	sta		player0Wrong
+	sta		player1Wrong
+	sta		entrance
+	
+	lda		#1
+	;sta 	gamestate			; Start in main gameplay
+	sta 	colordir
+	lda		#$1
+	sta		volume
+	
+	sta		AUDV0
+	sta		AUDV1
+
+	lda		#BLUE
+	sta		bgcolor
+	
+	lda 	#$FF
+	sta		player0ResponseIndex
+	sta		player1ResponseIndex
+	sta		player0Responses,0
+	sta		player0Responses,1
+	sta		player0Responses,2
+	sta		player0Responses,3
+	sta		player1Responses,0
+	sta		player1Responses,1
+	sta		player1Responses,2
+	sta		player1Responses,3
+	;lda		#2
+	;sta 	gamestate			; Start in gameover
+	
+;------------------------------------------------
+; Vertical Blank
+;------------------------------------------------
+MainLoop
+	; -----	This code is used by all game states	-----
+	lda		#0			;Start the vertical blank
+	sta		VBLANK
+	sta		reset		; Reset the reset flag
+	VERTICAL_SYNC
+	lda     #43
+	sta     TIM64T		;This sets a timer that we can check via INTIM
+
+
+	; -----			test gamestates for jump		-----
+	
+	lda		gamestate			; lets find out what the gamestate is
+	cmp		#0					; is it equal to 0?
+	bne		.temp1				; if not, branch to temp1, and skip the jump to attract
+	jmp		.attract			; jump to attrack if it is equal
+.temp1
+	cmp		#2					; compare gamestate to 2
+	bne		.main				; if not equal go to main (since there is only 3 gamestates)
+	jmp		.compareAnswers		; if it is equal, go to gameover
+	
+.main
+
+	;***** Vertical Blank code goes here
+	
+	;lda		#0
+	;sta		bgcolor
+	
+	;THIS IS TEMP, will have to have some kind of comparison on the round to figure
+	;	how fast the FPC is.
+	
+	inc 	frame						; increment the frame counter
+	lda		frame						; load the frame to accumulator
+	cmp		#FRAMES_PER_CHANGE			; see if the frame count is the same as max
+	bne 	.noReset					; if not, don't reset color
+	
+	lda 	#0							; reset frames	; else, reset
+	sta 	frame						; reset frame
+	lda 	beatnum
+	cmp		#3
+	bne		.main2
+	jmp 	.player0responseBegin		; stop at arrayLength
+
+.main2
+	inc		beatnum
+	ldx		beatnum
+	lda		note_array1,x
+	sta 	AUDF0
+	
+	;Calculate the new bgcolor
+	lda		color_array,x
+	sta		bgcolor	
+
+
+	
+.noReset
+	;lda 	SWCHA
+	;and 	#%0010000 ;--Player 0 hits up
+	;bne		.endOfFrame
+	
+	;lda 	INPT4					; This uses spacebar for the reset once in
+	;bpl  	.reset					; once in the main loop
+	lda		SWCHB					; uses the reset for reset once in the 
+	and		#RESET_MASK				; main loop
+	beq		.reset		
+	jmp		.endOfFrame
+	;bmi
+.reset
+	lda		#$FF
+	sta		player0ResponseIndex
+	sta		player1ResponseIndex
+	sta		player0Responses,0
+	sta		player0Responses,1
+	sta		player0Responses,2
+	sta		player0Responses,3
+	sta		player1Responses,0
+	sta		player1Responses,1
+	sta		player1Responses,2
+	sta		player1Responses,3
+	lda		#1				; Reset was pressed
+	sta		reset			; Reset
+	clc						; Clear the carry
+	lda		#1				; Set the accumulator to zer0
+	sta		gamestate
+	sta		beatnum			; Reset the beatnum to zero
+	sta		frame			; Reset the frames to zero
+	ldx		#0				; Set X to zero
+	;lda		note_array1,x	; Set A to the first note array
+	;sta 	AUDF0			; Tell TIA to play the note
+	
+	;lda		color_array,x	; Set A to the first color in the array
+	lda		#BLUE
+	sta		bgcolor			; Set bgcolor to the background
+	lda		#$1				; Set the appropriate volume
+	sta 	volume
+	sta		AUDV0			; Set the volume on the TIA
+		
+	lda 	#1				; Make sure the colordir is still going forward
+	sta 	colordir		; Set colordir to forward
+	
+	lda		reset			; Load the reset flag into A
+	cmp		#1				; Compare it to 1, is it on?
+	bne		.player0responseBegin	; If not on, go to player0response (?)
+	jmp 	.endOfFrame		; If it is, go to the end of the frame (?)
+		
+		
+.player1sequence
+
+	lda		#1				; Reset was pressed
+	sta		reset			; Reset
+	clc						; Clear the carry
+	lda		#0				; Set the accumulator to zer0
+	sta		beatnum			; Reset the beatnum to zero
+	sta		frame			; Reset the frames to zero
+	ldx		#0				; Set X to zero
+	lda		note_array2,x	; Set A to the first note array
+	sta 	AUDF0			; Tell TIA to play the note
+	
+	
+	lda		color_array1,x	; Set A to the first color in the array
+	sta		bgcolor			; Set bgcolor to the background
+	lda		#$1				; Set the appropriate volume
+	sta 	volume
+	sta		AUDV0			; Set the volume on the TIA
+
+	lda 	#1				; Make sure the colordir is still going forward
+	sta 	colordir		; Set colordir to forward
+
+;	lda		reset			; Load the reset flag into A
+;	cmp		#1				; Compare it to 1, is it on?
+;	bne		.player0responseBegin	; If not on, go to player0response (?)
+	;lda		#1
+	;sta		sequence
+	jmp 	.endOfFrame		; If it is, go to the end of the frame (?)
+
+
+;-------------------------------------------------
+;	Player Responses	
+;-------------------------------------------------
+	;Bit	Player				Joystic		Stella
+	;7 		player0 			right		right
+	;6 		player0 			left		left
+	;5 		player0 			down		down
+	;4 		player0 			up			up
+	
+	;3 		player1 			right		D
+	;2 		player1 			left		A
+	;1 		player1 			down		S
+	;0 		player1 			up			W
+;-------------------------------------------------
+;	NOTES
+;-------------------------------------------------
+;	Check to see if last response was same as current,
+;	if so, don't count it
+;-------------------------------------------------
+.player0responseBegin
+
+	lda		turn						; Check to see whose turn it is
+										; HAVE TO DO THIS BECAUSE MAIN LOOP ALWAYS
+										; JUMPS TO PLAYER 0 TURN
+	cmp		#1							; Compare if 1
+	beq		.player1Response			; If it is 1, go to player1Response
+	lda		player0ResponseIndex		; If not, load the response index
+	cmp		#3							; if equal to 3, then we did our last move
+	bne		.player0response			; if not, still player0 turn
+	lda		#1							; if it is 3, then end our turn.
+	sta		turn						; Load 1 into A and set turn to 1
+	sta		player0Responses,0
+	sta		player0Responses,1
+	sta		player0Responses,2
+	sta		player0Responses,3
+	
+	jmp		.player1sequence			; Now go to the beginning of player1 turn
+	;jmp		.player1response		; TESTING PURPOSES ONLY
+.player0response
+	inc		player0Ticks
+	ldx		#$FF
+	lda		#0
+	sta 	volume
+	sta		AUDV0
+	lda		#PLAYER_0
+	sta 	bgcolor
+	lda 	SWCHA
+.player0Right
+	and 	#P0_RIGHT ;--Player 0 hits right
+	bne		.player0Left
+	ldx		#0
+.player0Left
+	lda 	SWCHA
+	and 	#P0_LEFT ;--Player 0 hits left
+	bne		.player0Down
+	ldx		#1
+.player0Down
+	lda 	SWCHA
+	and 	#P0_DOWN ;--Player 0 hits down	
+	bne		.player0Up
+	ldx		#2	
+.player0Up
+	lda 	SWCHA
+	and 	#P0_UP ;--Player 0 hits up
+	bne		.player0End
+	ldx		#3
+	
+.player0End
+	stx		temp										; temp storage
+	lda		player0Responses,player0ResponseIndex-#1		; load the last response
+	cmp		temp										; was this response same as last response?
+	bne		.player0End2
+	jmp		.endOfFrame									; if so, ignore and go to end
+.player0End2
+	stx		player0Responses,player0ResponseIndex	; Is this proper syntax?
+	lda		temp		
+	cmp		#$FF
+	bne		.player0End3
+	jmp		.endOfFrame
+.player0End3
+	inc		player0ResponseIndex	; Indicate that the player has made a response
+	lda		note_array1,x
+	sta 	AUDF0
+	lda		color_array,x
+	sta		bgcolor
+	lda		#$1
+	sta		AUDV0
+	bne		.endOfFrame
+	
+.player1Begin
+	lda 	#$FF
+	sta		player1ResponseIndex
+	
+.player1Response
+	lda		player1ResponseIndex		; If not, load the response index
+	cmp		#3							; if equal to 3, then we did our last move
+	bne		.player1ResponseMiddle		; if not, still player1 turn
+	lda		#0							; if it is 3, then end our turn.
+	sta		turn						; Load 0 into A and set turn to 0
+	sta		player1ResponseIndex		; Reset the index
+										; NOTE: Player1 Responses Still stored in Array...
+	;TODO: SEE NOTE! HANDLE, THIS WILL CAUSE ERRORS NEXT PLAYER 0 TURN BECAUSE
+	;				IT CHECKS TO SEE WHAT THE PREVIOUS RESPONSE WAS.
+	
+	sta		player1Responses,0
+	sta		player1Responses,1
+	sta		player1Responses,2
+	sta		player1Responses,3
+	jmp		.roundOver				; Now go to the beginning of player1 turn
+	;jmp		.player1response		; TESTING PURPOSES ONLY
+	;
+.player1ResponseMiddle
+	inc		player1Ticks
+	ldx		#$FF
+	lda		#0
+	sta 	volume
+	sta		AUDV0
+	lda		#PLAYER_1
+	sta 	bgcolor
+	lda 	SWCHA
+.player1Right
+	and 	#P1_RIGHT 		;--Player 1 hits right
+	bne		.player1Left
+	ldx		#0
+.player1Left
+	lda 	SWCHA
+	and 	#P1_LEFT		;--Player 1 hits left
+	bne		.player1Down
+	ldx		#1
+.player1Down
+	lda 	SWCHA
+	and 	#P1_DOWN 		;--Player 1 hits down	
+	bne		.player1Up
+	ldx		#2	
+.player1Up
+	lda 	SWCHA
+	and 	#P1_UP		 	;--Player 1 hits up
+	bne		.player1End
+	ldx		#3
+
+.player1End
+	stx		temp
+	lda		player1Responses,player1ResponseIndex-#1
+	cmp		temp
+	beq		.endOfFrame
+	stx		player1Responses,player1ResponseIndex	; Is this proper syntax?
+	lda		temp		
+	cmp		#$FF
+	beq		.endOfFrame
+	inc		player1ResponseIndex	; Indicate that the player has made a response
+	lda		note_array1,x
+	sta 	AUDF0
+	lda		color_array,x
+	sta		bgcolor	
+	lda		#$1
+	sta		AUDV0
+	bne		.endOfFrame
+	
+.endOfFrame
+;Set the background color for the TIA.
+	lda		bgcolor
+	sta		COLUBK
+	jmp		.waitForVBlank
+	
+.roundOver
+	lda		#0
+	sta		beatnum
+	sta		frame
+	;jmp		.endOfFrame			; SHOULD DO THIS
+	lda		#2
+	sta		gamestate
+	jmp		.compareAnswers			; TEMP JUST TO SEE WHO IS QUICKER
+
+	
+	;START ATTRACT
+.attract
+	inc 	frame
+	lda		frame
+	cmp		#AFRAMES_PER_CHANGE
+	bne 	.dontresetcolor
+
+	lda 	#0
+	sta 	frame
+
+	;lda 	#1
+	;sta 	colordir
+
+	;Calculate the new bgcolor
+	clc
+	lda 	colordir
+	adc 	bgcolor
+	sta		bgcolor
+	sta		AUDF0
+		
+	;Check to see is it too light?
+	; compare command = cmp
+	cmp		#LGHTBLU+1
+	bne 	.nottoolight
+
+	lda 	#$FF
+	sta 	colordir
+	lda 	#LGHTBLU-1
+	sta		bgcolor
+
+.nottoolight
+	;Check to see, is it too dark?
+	cmp		#DRKBLU-1
+	bne 	.dontresetcolor	
+
+	lda 	#1
+	sta 	colordir
+	lda 	#DRKBLU+1
+	sta		bgcolor
+
+.dontresetcolor
+
+	;lda 	SWCHA
+	;and 	#%0010000 ;--Player 0 hits up
+	;bne		.endOfFrame
+
+	;lda INPT4
+	lda		SWCHB				; uses the reset for reset
+	and		#RESET_MASK
+	bne 	.endOfFrame
+
+	lda 	#DRKBLU
+	sta 	bgcolor
+	lda 	#1
+	sta		gamestate
+	sta 	colordir
+	jmp 	.endOfFrame
+; END ATTRACT
+	
+; START GAMEOVER
+.gameOver
+	;lda		#2
+	;sta		gamestate
+;	clc
+;	lda		player0Ticks
+;	sbc		player1Ticks
+;	bmi		.winner0
+;	jmp		.winner1
+	
+.gameOverMid
+	inc 	frame						; increment the frame counter
+	lda		frame						; load the frame to accumulator
+	cmp		#GO_FRAMES_PER_CHANGE		; see if the frame count is the same as max
+	bne 	.noReset2					; if not, don't reset color
+
+	lda 	#0							; reset frames	; else, reset
+	sta 	frame						; reset frame
+	sta		AUDV0
+	
+	lda 	beatnum
+	cmp		#3
+	bne 	.gameOverMid2		; stop at arrayLength
+	lda		#0
+	sta		beatnum
+.gameOverMid2
+	inc		beatnum
+	ldx		beatnum
+	;stx 	AUDF0
+
+.checkCorrect
+	lda		player0Wrong
+	cmp		player1Wrong
+	beq		.tieBuster
+	sbc		player1Wrong
+	bmi		.gao0
+	jmp		.gao1
+.tieBuster
+	clc
+	lda		player0Ticks
+	sbc		player1Ticks
+	bpl		.gao1
+.gao0
+	;Calculate the new bgcolor
+	lda		ga_array0,x
+	sta		bgcolor
+	jmp		.noReset2
+
+.gao1
+		;Calculate the new bgcolor
+	lda		ga_array1,x
+	sta		bgcolor
+	jmp		.noReset2
+	
+		
+.winner0
+	lda		PLAYER_0
+	sta		bgcolor
+	jmp		.gameOverMid
+.winner1
+	lda		PLAYER_1
+	sta		bgcolor
+	jmp		.gameOverMid
+
+.noReset2
+	lda		SWCHB						; uses the reset for reset once in the 
+	and		#RESET_MASK					; main loop
+	beq		.noReset3		
+	jmp		.endOfFrame
+.noReset3
+	jmp		.reset
+
+
+;------------------------------------------------
+; Correct Answers
+;	Player0						Player1
+;		1.	Right	0				1. 	Down	2
+;		2.	Left	1				2.	Left	1
+;		3.	Down	2				3.	Down	2
+;		4.	Up		3				4.	Up		3
+;------------------------------------------------
+
+.compareAnswers
+	lda		player0Responses,0
+	cmp		#0
+	bne		.wrong0
+	lda		player0Responses,1
+	cmp		#1
+	bne		.wrong0
+	lda		player0Responses,2
+	cmp		#2
+	bne		.wrong0
+	lda		player0Responses,3
+	cmp		#3
+	bne		.wrong0		
+	
+.compareAnswers1
+	lda		player0Responses,0
+	cmp		#2
+	bne		.wrong1
+	lda		player0Responses,1
+	cmp		#1
+	bne		.wrong1
+	lda		player0Responses,2
+	cmp		#2
+	bne		.wrong1
+	lda		player0Responses,3
+	cmp		#3
+	bne		.wrong1	
+
+.wrong0
+	lda		#1
+	sta		player0Wrong
+	jmp		.compareAnswers1
+.wrong1
+	lda		#1
+	sta		player1Wrong
+	jmp		.gameOver
+
+; END GAMEOVER
+.waitForVBlank
+	nop	
+	nop
+	nop
+	nop
+	lda		INTIM
+	bne		.waitForVBlank
+	sta		WSYNC
+	
+;------------------------------------------------
+; Kernel
+;------------------------------------------------	
+DrawScreen
+	ldx		#192+1		; Kernel goes here
+.scanline
+	;lda		bgcolor
+	;sta		COLUBK
+	;dec		bgcolor
+	dex
+	sta		WSYNC
+	bne		.scanline
+
+;------------------------------------------------
+; Overscan
+;------------------------------------------------
+	lda		#%01000010
+	sta		VBLANK
+    lda		#36
+    sta		TIM64T
+
+	;***** Overscan Code goes here
+
+.waitForOverscan
+	lda     INTIM
+	bne     .waitForOverscan
+
+	jmp		MainLoop
+
+;------------------------------------------------
+; ROM Tables
+;------------------------------------------------
+	;***** ROM tables go here
+	
+color_array
+	.byte	#BLUE
+	.byte	#YELLOW
+	.byte	#RED
+	.byte	#GREEN
+	
+color_array1
+	.byte	#RED
+	.byte	#YELLOW
+	.byte	#RED
+	.byte	#GREEN
+	
+	
+note_array1
+	.byte	NOTE_A
+	.byte	NOTE_G
+	.byte	NOTE_C
+	.byte	NOTE_E
+	
+note_array2
+	.byte	NOTE_C
+	.byte	NOTE_G
+	.byte	NOTE_A
+	.byte	NOTE_C;
+	
+ga_array0
+	.byte	PLAYER_0
+	.byte	BLACK
+	.byte	PLAYER_0
+	.byte	BLACK
+	
+ga_array1
+	.byte	PLAYER_1
+	.byte	BLACK
+	.byte	PLAYER_1
+	.byte	BLACK
+	
+
+;------------------------------------------------
+; Interrupt Vectors
+;------------------------------------------------
+	echo [*-$F000]d, " ROM bytes used"
+	ORG    $FFFA
+	.word  Start         ; NMI
+	.word  Start         ; RESET
+	.word  Start         ; IRQ
+    
+	END
+	
+	
+	
+	
+	
+	
+;------------------------------------------------	
+; MUSIC RELATED STUFF TO GO INTO MAIN LOOP
+;------------------------------------------------
+
+;--Update ticks.
+;lda ticks
+;clc ;--Clear the carry!
+;adc #$01
+;sta ticks
+
+;cmp #TICKS_PER_NOTE
+;bne .noNote
+;-- In this case, time for the next note
+
+;--reset ticks to 0
+;lda #$00
+;sta ticks

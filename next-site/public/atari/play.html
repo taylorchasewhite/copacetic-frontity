@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atari 2600 homebrew player</title>
+  <style>
+    :root { color-scheme: dark; font: 1rem/1.45 system-ui, sans-serif; background: #111; color: #fff; }
+    body { margin: 0 auto; text-align: center; }
+    p, footer { margin: .5rem; }
+    a { color: #9edfff; }
+    footer { font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <div id="javatari-screen"></div>
+    <p id="status" role="status">Loading cartridge&hellip;</p>
+    <noscript>Enable JavaScript to play these cartridges.</noscript>
+  </main>
+  <footer>
+    Emulator: <a href="https://javatari.org/" target="_blank" rel="noopener">Javatari 5.0.4</a> by Paulo Augusto Peccin
+    (<a href="https://github.com/ppeccin/javatari.js/tree/f954960ddfbd8b8645de447bc7dc7a1eda066877" target="_blank" rel="noopener">source</a>,
+    <a href="javatari/license.txt" target="_blank" rel="noopener">license</a>).
+  </footer>
+  <script src="javatari/javatari.js"></script>
+  <script>
+    const games = new Map([
+      ["super-step-bros", "Super Step Bros."],
+      ["skateboard-steve", "The Adventures of Grumpy Gramps & Skateboard Steve"],
+      ["simon-says", "Simon Says"],
+    ]);
+    const id = new URLSearchParams(location.search).get("game");
+    const statusLine = document.getElementById("status");
+    if (typeof Javatari === "undefined") {
+      statusLine.textContent = "The emulator could not load. Reload the page to try again.";
+    } else {
+      Javatari.AUTO_START = false;
+      if (!games.has(id)) {
+        statusLine.textContent = "Cartridge not found. Choose a game on the Atari homebrew article.";
+      } else {
+        document.title = games.get(id) + " | Atari 2600";
+        Javatari.ALLOW_URL_PARAMETERS = false;
+        Javatari.CARTRIDGE_CHANGE_DISABLED = true;
+        Javatari.CARTRIDGE_SHOW_RECENT = false;
+        Javatari.SCREEN_FULLSCREEN_MODE = 0;
+        Javatari.AUTO_POWER_ON_DELAY = 0;
+        Javatari.CARTRIDGE_URL = "roms/" + id + ".bin";
+        Javatari.start();
+        statusLine.textContent = (id === "simon-says" ? "Use Game Reset on the console to start. " : "")
+          + "Click or tap the screen for controls. Player 1: arrow keys and Space. Player 2: T/F/G/H and A.";
+      }
+    }
+  </script>
+</body>
+</html>

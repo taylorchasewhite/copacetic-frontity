@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { getPageBySlug, getPostBySlug } from "@/lib/wp";
 import { WpHtml } from "@/components/wp-html";
+import { AtariArcade } from "@/components/atari-arcade";
 import { PostCategories } from "@/components/post-categories";
 import { PostProgressBar } from "@/components/post-progress-bar";
 import { PatternHero } from "@/components/pattern-hero";
@@ -136,6 +137,7 @@ export default async function ContentPage({ params }: PageProps) {
             </div>
           )}
 
+          {slug === "atari-2600-homebrew-programming" && <AtariArcade />}
           <div className="prose prose-lg max-w-none">
             <WpHtml html={item.content.rendered} />
           </div>

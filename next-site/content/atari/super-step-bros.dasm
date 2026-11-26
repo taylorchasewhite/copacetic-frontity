@@ -1,0 +1,1809 @@
+;------------------------------------------------
+;
+; Super Step Bros. (The Adventure of Jo & Bo)
+; Atari VCS Game 
+; Created by Taylor White & Daltin Loomis on 2014-01-11.
+;
+; Copyright (c) 2014 Chase Media LLC. All rights reserved.
+;
+; Use with joystick controllers
+;
+;------------------------------------------------
+	processor 	6502
+	include 	vcs.h
+	include 	macro.h
+
+;------------------------------------------------
+; Constants
+;------------------------------------------------
+
+;***** COLORS
+BACKGROUND_COLOR 	= #$AC	; Used for the background
+HOUSE_COLOR 	= #$DE	; Used for the canyon walls
+CANYON_GROUND_COLOR = #$DE	; Used for the bottom of the canyon
+
+;***** DEBUGGING COLORS
+PF0_COLOR	= #$80
+PF1_COLOR	= #$1E
+PF2_COLOR	= #$48
+
+
+
+FENCE_COLOR		= #$0E
+HOUSE_COLOR		= #$DE
+ROOF_COLOR		= #$42
+CANYON_COLOR 	= #$3A
+RED				= #$41
+
+;***** PLAYFIELD STUFF
+CANYON_WALL 	= #%00110000	; Playfield pattern for pf0
+CANYON_GROUND 	= #%11111111	; Playfield pattern for pf1
+CANYON_CTLPF 	= #%00000000	; Setting the playfield to reflect
+COL_HEIGHT		= #15			; BLOCK HEIGHT
+;col0	 	= #%11110000	; Playfield pattern for pf0
+;col1	 	= #%11000000	; Playfield pattern for pf0
+
+;***** BALL
+PF_BALL_SIZE4 	= %00110000	; BALL SIZE 4
+PF_BALL_SIZE2 	= %00110000	; BALL SIZE 4
+BALL_ENABLE_MASK	= %00000010	; Ball Enabled
+BALL_DISABLE_MASK	= %00000000	; Ball Disabled
+
+
+;***** PLAYER ONE COLORS
+P0_HAT = #$40
+P0_SKIN = #$FB
+P0_SHIRT = #$80
+P0_PANTS = #$1F
+P0_SHOES = #$00
+
+
+;***** PLAYER TWO COLORS
+P1_SKIN = #$FB
+P1_BEARD = #$05
+P1_SHIRT = #$C0
+P1_PANTS = #$F0
+
+
+P_MIRROR 	= #%00001000	; Will mirror the player one graphics
+P0_MOVE_LEFT 	= #$20	; Left movement speed
+P0_MOVE_B_LEFT 	= #$40	; Left movement speed
+P0_MOVE_RIGHT	 	= #$E0	; Right movement speed
+P0_JUMP_HEIGHT	= #36
+
+
+;------------------------------------------------
+;CONTROLS
+;------------------------------------------------
+P0_RIGHT 	= #%10000000 	;--Player 0 hits right
+P0_LEFT 	= #%01000000 	;--Player 0 hits left
+P0_DOWN 	= #%00100000 	;--Player 0 hits down
+P0_UP 		= #%00010000 	;--Player 0 hits up
+PLAYER_ONE_MOVE_LEFT = #$20	; Left movement speed
+
+PLAYER_ONE_MOVE_RIGHT = #$E0	; Right movement speed
+
+P1_RIGHT 	= #%00001000 								;--Player 1 hits right
+P1_LEFT		= #%00000100 								;--Player 1 hits left
+P1_DOWN		= #%00000010 								;--Player 1 hits down
+P1_UP 		= #%00000001 								;--Player 1 hits up
+P1_FIRE		= #%10000000 								;--Player 1 hits fire
+P1_LEFT_SPEED = #$10								; Left movement speed
+PLAYER_TWO_MOVE_RIGHT = #$F0							; Right movement speed
+
+;------------------------------------------------
+;Music Notes
+;------------------------------------------------
+NOTE_REST = %10000000
+NOTE_HIGH_HAT = 0
+NOTE_KICK = 20
+NOTE_E = 23
+NOTE_F = 20												; Not good
+NOTE_G = 19
+NOTE_GS = 18
+NOTE_A = 17
+NOTE_B = 15
+NOTE_C = 14
+NOTE_D = 12
+NOTE_E2 = 11
+NOTE_D2 = 26
+NOTE_D4 = 17
+
+
+;These notes signal the start of a note
+NOTEA_E = 23+32
+NOTEA_F = 20+32											; Not good
+NOTEA_G = 19+32
+NOTEA_GS = 18+32
+NOTEA_A = 17+32
+NOTEA_B = 15+32
+NOTEA_C = 14+32
+NOTEA_D = 12+32
+NOTEA_E2 = 11+32
+NOTEA_D2 = 26+32
+
+;Song length
+SONG_LENGTH		= #53
+GO_LENGTH		= #20
+
+; mask for SWCHB
+P1_DIFF_MASK      = %10000000
+BW_MASK           = %00001000       	; black and white bit
+SELECT_MASK       = %00000010	; Select
+RESET_MASK        = %00000001	; Reset
+
+
+;------------------------------------------------
+; RAM
+;------------------------------------------------
+    SEG.U   variables
+    ORG     $80
+;--Our actual score
+score0				.byte	;0
+score1				.byte	;1
+loopcounter 		.byte	;2
+frameCount			.byte	;3
+frame				.byte	;4
+seconds				.byte	;5
+scoreLine			.byte	;6
+;--Character 1 address start
+starting_x_value_lo .byte	;7
+starting_x_value_hi .byte	;8
+yPos				.byte	;9
+lineCount			.byte	;10
+airCount			.byte	;11
+groundCount			.byte	;12
+rockCount			.byte	;13
+frames				.byte	;14
+p1_fire				.byte	;15
+tempYpos			.byte	;16
+upJump				.byte	;17
+jump_counter		.byte	;18
+sprite_alternator	.byte	;19
+alt_count			.byte	;20
+ballPos				.byte	;21
+
+;visiblePlayerLine	.byte
+
+;***** PLAYER POSITION VARIABLES
+p0HorPos			.byte	;22 Flag to determine which way the player is pressing. 1 == left, 0 == rights
+isP0PFCollision 	.byte	;23 Flag for if there is a collision with the playfield. 1 == Yes a collision, 0 == no collision
+p0CanMove			.byte	;24 Flag to check if input is allowed again. 1 == Can move, 0 == Cant move
+
+
+
+
+;***** PLAYFIELD VARIABLES
+col0_0	 			.byte	;25
+col0_1				.byte	;26
+col0_2				.byte	;27
+col0_3				.byte	;28
+col0_4				.byte	;29
+
+col1_0				.byte	;30
+col1_1				.byte	;31
+col1_2				.byte	;32
+col1_3				.byte	;33
+col1_4				.byte	;34
+
+col2_0				.byte	;35
+col2_1				.byte	;36
+col2_2				.byte	;37
+col2_3				.byte	;38
+col2_4				.byte	;39
+
+
+col3_0				.byte	;40
+col3_1				.byte	;41
+col3_2				.byte	;42
+col3_3				.byte	;43
+col3_4				.byte	;44
+
+col4_0				.byte	;45
+col4_1				.byte	;46
+col4_2				.byte	;47
+col4_3				.byte	;48
+col4_4				.byte	;49
+
+col5_0				.byte	;50
+col5_1				.byte	;51
+col5_2				.byte	;52
+col5_3				.byte	;53
+col5_4				.byte	;54
+
+beatCounter			.byte	;55
+songCount			.byte	;56
+lives				.byte	;57
+runAnimationSpeed 	.byte	;58
+liveFlag			.byte	;59
+ballFlag			.byte	;60
+pfSpeed				.byte	;61
+gameSeconds			.byte	;62
+gameCount			.byte	;63
+bgcolor				.byte	;64
+rockHeight			.byte	;65
+growFlag			.byte	;66
+fallFlag			.byte	;67
+m1Pos				.byte	;68
+.b0CurrentAnimation
+					.byte 	%00111000
+					.byte 	%00111000
+					.byte 	%00111000
+					.byte 	%00111000
+					.byte 	%00111000
+					.byte 	%00111000
+					.byte 	%00111000
+					.byte 	%00111000
+
+;------------------------------------------------
+; Start of ROM
+;------------------------------------------------
+	SEG   Bank0
+	ORG   $F000       								; 4k ROM start point
+	
+Start 
+	CLEAN_START										; Clear RAM and Registers
+	sta 	RESM0
+	lda 	#%01110000
+	sta 	HMM0
+	sta 	HMOVE
+	sta 	HMOVE
+	sta 	HMOVE
+	sta 	HMOVE
+	sta 	HMOVE
+	sta 	HMOVE
+	sta 	HMOVE
+	sta 	HMOVE
+	sta 	HMOVE
+	sta 	HMOVE
+	sta 	HMOVE
+	lda 	#%00110000
+	sta 	HMOVE
+
+
+
+													;Initialize variables
+	lda 	#12										; Audio Vals
+	sta 	AUDC0									; Audio channel
+	lda 	#7
+	sta 	AUDC1
+
+	;----Song initialization stuff
+	lda 	#SONG_LENGTH
+	sta 	songCount
+	lda 	#0
+	sta 	beatCounter
+
+	lda		#156									; 1 Above ground
+	sta		yPos
+	lda		#72
+	sta		ballPos
+	lda		#0										; Load 0 into A
+	sta		liveFlag
+	sta 	HMM0
+	sta		seconds
+	sta		jump_counter
+	sta		starting_x_value_lo						; High 0
+	sta		starting_x_value_hi						; Low 0
+	sta		frameCount								; Start frameCount
+	sta		p0HorPos
+	
+	lda		#1
+	sta		p0CanMove								; Setting the movement flag to true to start with
+	
+	lda		#BACKGROUND_COLOR	
+	sta		COLUBK									; Setting the color for the background
+
+	lda		#CANYON_CTLPF | PF_BALL_SIZE2			; Also set the ballsize
+	sta		CTRLPF									; Setting the reflection pattern for the playfield
+	sleep 	6
+	sta 	RESBL
+	;lda		#CANYON_COLOR
+	;sta		bgcolor
+	lda		#3
+	sta		lives	
+	lda		#2
+	sta		ENAM0
+	lda 	#10
+	sta 	runAnimationSpeed
+	lda		#9
+	sta		pfSpeed
+	lda		#%01100000
+	sta		NUSIZ0
+	lda		#0
+	sta		ballFlag
+	lda		#%11110000
+	sta		col0_0									; Playfield pattern for pf0
+	lda		#%10000000
+	sta		col1_0	
+	lda		#158
+	sta		rockHeight
+	lda		#60
+	sta		m1Pos
+	sta		RESMP1
+	
+;------------------------------------------------
+; Vertical Blank
+;------------------------------------------------
+MainLoop
+	lda		#0										; Set volume to 0
+	sta		VBLANK									; No idea
+
+	VERTICAL_SYNC
+	lda     #43
+	sta     TIM64T
+	lda 	#2
+	sta		CXCLR
+	lda 	#10
+	sta 	AUDV0
+	lda 	#3
+	sta 	AUDV1
+	inc		gameCount
+	lda		gameCount
+	cmp		#9
+	bne		.next
+	inc		gameSeconds
+	lda		#0
+	sta		gameCount
+.next
+	;lda INPT4
+	lda		SWCHB				; uses the reset for reset
+	and		#RESET_MASK
+	bne		.next1
+	jmp		Start
+.next1
+	lda		lives
+	bne		.songPlayer
+	
+
+
+.gameOverSongPlayer
+	inc 	beatCounter	 					;Use beatCounter to count beats and set a tempo
+	lda 	beatCounter
+	cmp 	#10						;This should change the beats every half a second
+	bne 	.dontDecrementGOSongCount
+.decrementGOSongCount
+	dec 	songCount
+	lda 	#0
+	sta 	beatCounter
+.dontDecrementGOSongCount
+	ldx  	songCount
+	lda 	.gameOverSong,x
+	cmp 	#NOTE_REST
+	bne 	.notGORest
+	ldy 	#0
+	sty 	AUDV0
+
+.notGORest
+	sta 	AUDF0
+
+.dontDecrementGOSongCount2
+
+;	lda 	.song2,x
+;	cmp 	#NOTE_REST
+;	bne 	.notGORest2
+;	ldy 	#0
+;	sty 	AUDV1
+
+.notGORest2
+	sta 	AUDF1
+	cpx 	#0
+	beq 	.resetGOSongCount
+
+	jmp 	.dontGOReset
+.resetGOSongCount
+	lda 	#GO_LENGTH
+	sta 	songCount 	;When songCount is reset it should start the song over... hopefully
+.dontGOReset
+	jmp		.gameOver
+
+	
+.songPlayer
+	sta		RESMP1
+	dec		m1Pos
+	inc 	beatCounter	 					;Use beatCounter to count beats and set a tempo
+	lda 	beatCounter
+	cmp 	#10						;This should change the beats every half a second
+	bne 	.dontDecrementSongCount
+.decrementSongCount
+	dec 	songCount
+	lda 	#0
+	sta 	beatCounter
+	sta		liveFlag
+	sta		AUDV0
+	sta 	AUDV1
+.dontDecrementSongCount
+	ldx  	songCount
+	
+	lda 	.song,x
+	cmp 	#NOTE_REST
+	bne 	.notRest
+	ldy 	#0
+	sty 	AUDV0
+	
+.notRest
+	sta 	AUDF0
+	
+.dontDecrementSongCount2
+ 
+	lda 	.song2,x
+	cmp 	#NOTE_REST
+	bne 	.notRest2
+	ldy 	#0
+	sty 	AUDV1
+
+.notRest2
+	sta 	AUDF1
+	cpx 	#0
+	beq 	.resetSongCount
+
+	jmp 	.dontReset
+.resetSongCount
+	lda 	#SONG_LENGTH
+	sta 	songCount 	;When songCount is reset it should start the song over... hopefully
+.dontReset
+
+.changeBGcolor
+	lda		liveFlag
+	beq		.dontChange
+	lda		#RED 				;	RED
+	sta		bgcolor
+	jmp		.spriteAlternate
+
+.dontChange
+	lda		#CANYON_COLOR
+	sta		bgcolor
+.spriteAlternate
+	;----------------------
+	;	Sprite Alternating
+	;----------------------
+	inc 	alt_count						; increment the counter
+	lda		alt_count						; load the counter for sprite alternation
+	cmp		runAnimationSpeed						; compare it to twenty, the sprites alt every 21 frames
+	bne		.main0							; if its not at 20 then skip to the main loop
+	lda		#0								; load zero
+	sta		alt_count						; store it into alt and reset
+	cmp		sprite_alternator				; compare to the alternator (1 or 0)
+	beq		.alternate0						; if its zero, store a one at .alternate0
+	lda 	#1
+	cmp		sprite_alternator			
+	beq		.alternate1	
+	lda 	#2				
+	cmp		sprite_alternator			
+	beq		.alternate2
+	lda 	#0					
+	sta		sprite_alternator
+	jmp		.spriteUpdate							; skip over .alternate
+.alternate0
+	lda		#1								; store 1 into 
+	sta		sprite_alternator				; alternator
+	jmp 	.spriteUpdate
+.alternate1
+	lda 	#2
+	sta 	sprite_alternator
+	jmp 	.spriteUpdate
+.alternate2
+	lda 	#3
+	sta 	sprite_alternator
+
+
+.spriteUpdate
+	ldx		#7
+	lda		#%00000001
+	bit		sprite_alternator
+	beq		.spriteAnimation1
+	;The following code should help add in the third frame
+	lda		#%00000010
+	bit		sprite_alternator
+	beq 	.spriteAnimation2
+	jmp 	.spriteAnimation0	
+
+.spriteAnimation0
+	lda		.b0Sprite,x
+	sta		.b0CurrentAnimation,x
+	dex
+	bpl		.spriteAnimation0
+	jmp		.main0
+	
+.spriteAnimation1
+	lda		.b0Animation1,x
+	sta		.b0CurrentAnimation,x
+	dex
+	bpl		.spriteAnimation1
+	jmp		.main0
+	
+.spriteAnimation2
+	lda		.b0Animation2,x
+	sta		.b0CurrentAnimation,x
+	dex
+	bpl		.spriteAnimation2
+	;jmp	.main0
+	
+	
+	;----------------------
+	;	Check for jump end
+	;----------------------	
+.main0
+	lda		#%00000000								; LINE LF1A9
+	cmp		upJump									; ram 91
+	bne		.jumpSequenceBegin						; either not in a jump or falling down		
+	lda		fallFlag
+	cmp		#3
+	bne		.main01
+	lda		#1
+	sta		fallFlag
+	;;lda		#0
+	;sta		jump_counter
+	jmp		.jumpSequenceBegin
+.main01
+	lda		yPos
+	clc
+	sbc		#156
+	;lda		#0
+	beq		.jumpSequenceBegin
+	inc		yPos
+	lda		#1
+	sta		fallFlag
+;	inc		yPos
+;	inc		yPos
+	jmp		.rotatePF
+	
+	
+.jumpSequenceBegin
+	lda		upJump									; Check to see if in a jump.
+													; Zero means hes not in a jump
+	beq		.checkForJumpChange						; jump to the checkForJumpChange routine if not in a jump
+	cmp		#1										; One means he is jumping upwards
+	bne		.downJump								; if its equal to 2 then go to downJump
+
+	;----------------------
+	;	In middle of up jump
+	;----------------------
+.upJump
+	dec		yPos									; if hes jumping up then dec yPos, for whatever
+													; reason this makes him go up
+	inc		jump_counter							; start the timer of being in the air.
+	dec		yPos									; do it again
+	inc		jump_counter							; increment timer again
+	lda		#0
+	sta		fallFlag
+	jmp		.checkForJumpChange						; go to main loop
+	
+	;----------------------
+	;	In middle of down jump
+	;----------------------
+.downJump
+	inc		yPos									; increment yPos (makes it go down)
+	dec		jump_counter							; decrement the counter, count down 
+	inc		yPos									; again
+	dec		jump_counter							; again
+	lda		#1
+	sta		fallFlag	
+
+	;----------------------
+	;	Check for changing the jump from up to down or down to stop
+	;----------------------
+.checkForJumpChange
+	lda		jump_counter							; load the jump timer
+	cmp		#P0_JUMP_HEIGHT							; compare it to the time we want to be in the air
+	bne		.jumpFlagChange							; if its not equal 
+	lda		#2										; load 2 for jumping down
+	sta		upJump									; store it into upJump flag
+
+	;----------------------
+	;	Change the jump flag
+	;----------------------
+.jumpFlagChange
+	lda		jump_counter							; load the jump_counter
+													; see if we're on the ground
+	bne		.rotatePF								; if not don't do anything?	
+.nowChange
+	lda		#0										; if so, then set the flag back to not jumping
+	sta		upJump
+	lda		#0
+	sta		fallFlag
+	;----------------------
+	;	Playfield rotate left
+	;----------------------
+.rotatePF
+	lda		frame									; Load the frameCounter
+	cmp		pfSpeed										; compare to 60 seconds	
+	bne		.main									; if it hasnt changed
+	;--Increment the score
+	clc
+	sed
+	lda		seconds
+	sta		score0
+	lda		score1
+	adc		#0
+	sta		score1
+	cld	
+	;----------------------
+	;	SCORE
+	;----------------------
+	;--Calculate starting_x_value for the
+	;  low bits of score0
+	lda	score0
+	and	#%00001111
+	;Store the current score
+	sta	starting_x_value_lo
+	;Multiply it by 4
+	asl
+	asl
+	
+	clc
+	adc	starting_x_value_lo
+	sta	starting_x_value_lo
+	
+	;--Calculate starting x for the hi bits
+	lda	score0
+	
+	;Shift the 4 hi bits to the right, 4 places
+	lsr
+	lsr
+	lsr
+	lsr
+	
+	;Store the current score
+	sta	starting_x_value_hi
+	;Multiply it by 4
+	clc
+	asl
+	asl
+	
+	clc
+	adc	starting_x_value_hi
+	sta	starting_x_value_hi	
+	
+	lda		#0										; if frame is equal to 59, reset
+	sta		frame									; store 0 to frame
+	clc												; clear the carry						
+	ror 	col2_0									; rotate right
+	rol		col1_0									; rotate PF1 left,	
+	ror		col0_0 									; rotate PF0 right (to make it move left)
+	lda		#%00001000
+	bit		col0_0
+	beq		.main
+	eor		col0_0
+	sta		col0_0
+	lda		col2_0
+	adc		#%10000000
+	sta		col2_0
+	
+	
+	
+	;----------------------
+	;	MAIN LOOP
+	;----------------------
+.main
+	lda		frameCount
+	cmp		#59
+	bne		.main2
+	inc		seconds									; increment the seconds counter
+	lda		#%00000100
+	bit		seconds
+	bne		.main1
+	lda		pfSpeed
+	sbc		#2
+	beq		.main1
+	dec		pfSpeed
+
+
+.main1
+	lda		#0
+	sta		frameCount
+	clc
+	lda		#5
+	adc		starting_x_value_lo
+	sta		starting_x_value_lo
+.main2
+;	lda		#00000001
+;	clc
+;	lda		beatCounter
+;	beq		.main3
+;	jmp		.main30
+;.main3
+;	lda		#%00000001
+;	bit		growFlag
+;	beq		.main4
+;	inc		growFlag
+;	clc
+;	lda		rockHeight
+;	sbc		#3
+;	sta		rockHeight
+;	jmp		.main30
+;.main4
+;	inc		growFlag
+;	clc
+;	lda		rockHeight
+;	adc		#3
+;	sta		rockHeight
+.main30	
+	inc		frameCount	
+	inc		frame
+	lda		#HOUSE_COLOR							; Load canyon color
+	sta		COLUPF									; color the playfield
+													; Clearing collision detection register
+	ldy		alt_count
+	bne		.skipMoveReset
+	lda		#1
+	sta		p0CanMove
+	
+.skipMoveReset
+	lda		#1
+	cmp		isP0PFCollision							; Checking against the playfield collision flag
+	beq		.collidingWithPlayfield					; If it is colliding, only allow jump
+	
+	ldy		#0
+
+.checkP0LeftMove
+	lda		#P0_LEFT								; CHECKING IF MOVING LEFT
+	bit		SWCHA	
+	bne		.checkP0RightMove						; IF NOT, CHECK RIGHT MOVEMENT
+
+	lda		#1
+	cmp		p0CanMove
+	beq		.moveP0Left								; If the player is allowed to move, branch to the movement section
+	cmp		p0HorPos
+	bne		.moveP0Left								; Determine if the input is acceptable input after the collision
+	
+	jmp		.checkP0UpMove							; If not, don't let the player move horizontally
+
+.moveP0Left
+	lda		#1										; Setting p1HorPos to 1
+	sta		p0HorPos								; If it's set to one, it will adjust the player to the right after a collision
+	ldy		#P0_MOVE_LEFT							; Setting the movement offset to the left movement value
+	lda		#1
+	sta		p0CanMove								; Resetting the can move flag
+
+	lda		#P_MIRROR								; Since moving left, reflect the player image
+	sta		REFP0									; Reflecting
+	jmp		.checkP0UpMove							; Skip to up
+
+.checkP0RightMove
+
+	lda		#P0_RIGHT								; Checking if moving right
+	bit		SWCHA									; Against the joystick input
+	bne		.checkP0UpMove							; If not, check up
+
+	lda		#1
+	cmp		p0CanMove
+	beq		.moveP0Right							; If the player is allowed to move, branch to the movement section
+
+	cmp		p0HorPos
+	beq		.moveP0Right							; Determine if the input is acceptable input after the collision
+
+	jmp		.checkP0UpMove							; If not, check for up
+
+.moveP0Right
+	lda		#0										; Setting p1HorPos to 0
+	sta		p0HorPos								; If it's set to 0, it will adjust the player to the left after a collision
+	ldy		#P0_MOVE_RIGHT							; Setting the movement offset to the right movement value
+
+	lda		#1
+	sta		p0CanMove								; Resetting the can move flag
+
+	lda		#0										; Cancelling the reflection
+	sta		REFP0									; Which will turn the player back
+	jmp		.checkP0UpMove							; Skip to being done
+
+.checkP0UpMove
+	lda		INPT4
+	;lda		#P0_UP									; Checking if moving up
+	;bit		SWCHA									; Against the joystick input
+	bmi		.doneCheckingPlayerInput				; If not, we're done checking input
+	
+	lda		fallFlag
+	bne		.doneCheckingPlayerInput
+	
+	lda		upJump									; 0 upJump means: isnt jumping, 1 upJump means: already is
+	beq		.p0Jump									; If the player is allowed to move, branch to the movement section
+
+	jmp		.doneCheckingPlayerInput				; If not, don't let the player jump
+
+.p0Jump
+	lda		#0										; Setting p0HorPos to 0
+	sta		p0HorPos								; If it's set to 0, it will adjust the player to the left after a collision
+
+	lda		#1
+	sta		upJump
+	jmp		.doneCheckingPlayerInput				; Skip to being done
+
+.collidingWithPlayfield
+	lda		fallFlag
+	cmp		#1										; ADDRESSS LF2EO
+	bne		.cPF
+	dec		yPos
+	dec		yPos
+	lda		#3
+	sta		fallFlag
+	;sta		upJump
+	jmp		.doneCheckingPlayerInput
+	
+.cPF
+	lda		p0HorPos								; Checking to see which way the player was moving
+	beq		.adjustP0Right							; Branching to adjust the player to the right a bit if they were moving left
+	lda		#P0_LEFT								; CHECKING IF MOVING LEFT
+	bit		SWCHA	
+	beq		.collidingWithPlayfield1						; IF YES, MOVE RIGHT
+	ldy		#P0_MOVE_B_LEFT							; Facing left and playField hits us on the right from behind
+	jmp		.checkP0UpMove		
+.collidingWithPlayfield1
+	ldy		#P0_MOVE_RIGHT							; Facing left and we run into playfield	
+	jmp		.checkP0UpMove
+
+.adjustP0Right
+	;lda		pfSpeed
+	;ora		#P0_MOVE_LEFT
+	;tay
+	ldy		#P0_MOVE_B_LEFT							; Facing right and playField hits us on the right in front of us
+	
+.doneCheckingPlayerInput
+	lda		ballFlag
+	beq		.endPlayerInputForGood
+	ldy		#P0_MOVE_B_LEFT
+.endPlayerInputForGood
+	sty		HMP0	; Storing how much to move by	
+
+	;--------------------------------------------
+	; PLAYER ONE CONTROL
+	;--------------------------------------------
+	sta		CXCLR									; Clearing collision detection register
+	ldy		#0	
+	lda		#P1_LEFT								; CHECKING IF MOVING LEFT
+	bit		SWCHA		
+	bne		.checkP1RightMove						; IF NOT, CHECK RIGHT MOVEMENT
+
+	ldy		#P1_LEFT_SPEED							; Setting the movement offset to the left movement value
+
+	lda		#P_MIRROR								; Since moving left, reflect the player image
+	sta		REFP1									; Reflecting
+	jmp		.doneCheckingP1Input					; Skip to being done
+
+.checkP1RightMove
+	lda		#P1_RIGHT								; Checking if moving right
+	bit		SWCHA									; Against the joystick input
+	bne		.doneCheckingP1Input					; If not, we're done checking input
+
+	ldy		#PLAYER_TWO_MOVE_RIGHT					; Setting the movement offset to the right movement value
+
+	lda		#0										; Cancelling the reflection
+	sta		REFP1									; Which will turn the player back
+	jmp		.doneCheckingP1Input					; Skip to being done
+
+
+.doneCheckingP1Input
+	sty		HMP1									; Storing how much to move by
+	lda		p1_fire	
+	cmp		#1
+	beq		.player1Right
+	;sty		HMBL
+
+
+.player1Right
+	lda 	SWCHA									; Load Joysticks
+	and 	#P1_RIGHT 								; Player 1 hits right
+	bne		.player1Left							; If not jump to left
+	clc												; Clear the carry
+	lda		#$FF									; Move right
+	;sta		HMBL								; Tell TIA
+	lda		NOTE_C									; Play C
+	sta 	AUDF1									; 
+	lda		#$5										; 
+	sta		AUDV1									;
+	jmp		.player1End
+.player1Left
+	lda 	SWCHA									; Load Joysticks
+	and 	#P1_LEFT								;--Player 1 hits left
+	bne		.player1Fire							; If not jump to down
+	clc											
+	lda		#$10									; Move left
+	;sta		HMBL								; Tell TIA
+	lda		NOTE_D									; Play D
+	sta 	AUDF1									;
+	lda		#$5										;
+	sta		AUDV1									;
+	jmp		.player1End								; Jump to the end
+.player1Fire
+	;lda		SWCHA									; Load Joysticks
+	;and		#P1_DOWN								; Player 1 hits down
+	lda		INPT5
+	;and		P1_FIRE
+	bmi		.player1NoMovementEnd					; branch to player1End if not pressed down
+	lda		NOTE_B									; Load Note_B
+	sta 	AUDF1									; Notify TIA
+	lda		#$5										; Load into A
+	sta		AUDV1									; Store volume to TIA
+	lda		#1										; Load 1 into A
+	sta		p1_fire									; Set the flag that he fired
+	jmp		.player1End
+
+.player1NoMovementEnd
+	;lda		#$0										; Load into A
+	;sta		AUDV0									; Store volume to TIA	
+
+.player1End
+	jmp		.waitForVBlank
+	
+.gameOver
+	lda		#%00000001
+	bit		gameSeconds
+	beq		.gameOver2
+	lda		#$03
+	sta		COLUBK	
+	jmp		.vBlank2
+.gameOver2
+	lda		#$41
+	sta		COLUBK
+	
+.vBlank2
+	jmp		.waitForVBlank2
+	
+.waitForVBlank
+	lda		INTIM									;
+	bne		.waitForVBlank							;
+	sta		WSYNC									; 
+	sta		HMOVE									; Allow for movement
+	jmp		DrawScreen								; if alternator == 1, do kernel 1
+													; else do kernel 2
+
+
+.waitForVBlank2
+	lda		INTIM									;
+	bne		.waitForVBlank2							;
+	sta		WSYNC									; 
+;	sta		HMOVE									; Allow for movement
+													; if alternator == 1, do kernel 1
+													; else do kernel 2
+	jmp		DrawScreen2
+
+;------------------------------------------------
+; Kernel
+;------------------------------------------------	
+
+DrawScreen
+	sta		WSYNC
+	lda		#10
+	sta		lineCount
+	inc		frames
+	ldx		#49+1									; This is how many lines of air we have
+	stx		airCount								; store it into the variable
+	ldx		#9										; 9 lines of ground
+	stx		groundCount								; Update ground count
+	lda		#0										; Empty pf1, pf2, pf0
+	sta		PF0										;
+	sta 	PF1										;
+	sta		GRP1									; BURT
+	lda		#5										;
+	sta		loopcounter								;
+	ldx		starting_x_value_lo						;
+	lda		.zero_right,x							;
+	ldy		starting_x_value_hi						;
+	ora 	.zero_left,y							;
+.scoreloop
+	lda		#$0F
+	sta		COLUPF
+	sta		PF1	
+	sta		scoreLine
+	sta 	WSYNC
+	;----------------------------------------
+	; This is where we empty the second score 
+	;----------------------------------------
+	sta 	WSYNC									; Draw line
+	inx												; Increment X
+	dey												; Increment Y
+	dey
+	lda		.zero_right,x							; 
+	ora 	.zero_left,y							;
+	sta		PF1										;
+	dec 	loopcounter
+	bne		.scoreloop
+	lda		#0
+	sta		PF1
+	lda		#HOUSE_COLOR
+	sta		COLUPF	
+	
+;------------------------------------------------
+; Spacing between score and Joe
+;------------------------------------------------
+	ldx		#5										; 5 WSYNCS
+.tempLoop											; Decrement Line Count
+	inc		lineCount
+	dex												; Dec X
+	sta		WSYNC									; Draw Line
+	bne		.tempLoop								; Loop
+	
+;------------------------------------------------
+; Player 1 Level
+;------------------------------------------------
+.p1Setup
+	ldx	#7											; Loading the sprite array index
+	lda 	INPT5
+	bpl 	.p1DrawLoop2
+	
+.p1DrawLoop											; This loop will loop through 16 total lines
+	lda		.j0SpriteColors,x						; Getting the sprite color
+	sta		COLUP1									; This loop will loop through 16 total lines
+	lda		.j0SpriteArmsUp,x						; Getting the graphics data
+	sta		GRP1
+	sta		WSYNC
+	inc		lineCount
+	inc		lineCount
+	lda		#0
+	sta		PF0
+	sta		PF1
+	sta		PF2
+	sta		WSYNC
+	cpx		#2
+	bne		.p1pt2Loop
+	lda		bgcolor
+	sta		COLUBK
+.p1pt2Loop
+	dex												; Checking to see if we are done looping
+	bpl		.p1DrawLoop
+	jmp 	.skipP1DrawLoop2
+ 
+.p1DrawLoop2
+	lda		.j0SpriteColors,x												; Getting the sprite color
+	sta		COLUP1													; This loop will loop through 16 total lines
+	lda		.j0SpriteArmsDown,x														; Getting the graphics data
+	sta		GRP1
+	sta		WSYNC
+	inc		lineCount
+	inc		lineCount
+	lda		#0
+	sta		PF0
+	sta		PF1
+	sta		PF2
+	sta 	WSYNC
+	cpx		#2
+	bne		.p1pt2Loop2
+	lda		bgcolor
+	sta		COLUBK
+.p1pt2Loop2
+	dex																		; Checking to see if we are done looping
+	bpl		.p1DrawLoop2
+	
+	
+.skipP1DrawLoop2
+	lda		bgcolor
+	sta		COLUBK
+	sta		WSYNC
+	lda		#0
+	sta		GRP1
+	lda		#$41
+	sta		COLUP0
+	lda 	#BACKGROUND_COLOR
+	sta 	COLUP1
+	lda		#2	
+	sta		ENAM0
+	sta		ENABL
+	sta		WSYNC
+.beginLoop
+	ldx		#7
+
+	
+.dropBall											; DROP THE BALL
+	lda		yPos									; load lineCount
+	sbc		lineCount									; Subtract the yPositionFromBottom
+	adc		#22										; Add the rockHeight [19]
+	bcs		.enableBall								; If the carry flag is set, jump to the enable ball
+	lda		#0
+	sta		GRP0									; Turning off the player 0 graphics
+.dropBall2
+	lda		m1Pos
+	sbc		lineCount
+	adc		#15
+	bcs		.enableMissile
+	lda		BALL_DISABLE_MASK												; Enable the ball
+	sta		ENAM1
+	jmp		.openAir
+	
+.enableBall
+	lda		.b0SpriteColors,x						; Getting the sprite color
+	sta		COLUP0									; Storing to the p1 color register
+	lda		.b0CurrentAnimation,x							; Getting the graphics data
+	sta		GRP0									; Saving to the player 1 graphics
+	dex
+	jmp		.dropBall2
+
+.enableMissile
+;	lda		BALL_ENABLE_MASK												; Enable the ball
+;	sta		ENAM1	
+
+.openAir
+	dec		airCount								; Decrement Air Count
+	
+	sta		WSYNC
+	inc		lineCount
+	inc		lineCount
+	inc		lineCount
+	ldy		col0_0
+	sta		WSYNC									; Draw Line
+
+.playFieldCheck											; DROP THE BALL
+	lda		rockHeight									; load lineCount
+	sbc		lineCount									; Subtract the yPositionFromBottom
+	adc		#12										; Add the rockHeight [19]
+	bcs		.enablePF								; If the carry flag is set, jump to the enable ball
+	jmp		.openAir1
+
+.enablePF
+	sty		PF0
+	lda		col1_0
+	sta		PF1
+	lda		col2_0
+	sta		PF2
+	
+	
+.openAir1
+	sta		WSYNC
+
+	
+;.endP0Draw
+;	lda		#0
+;	sta		GRP0									; Turning off the player 0 graphics
+
+	lda		airCount
+	bne		.dropBall									; Loop
+	
+;------------------------------------------------
+; Ground Level
+;------------------------------------------------
+	lda		#0
+	sta		GRP0									; Turning off the player 0 graphics
+	lda		#CANYON_GROUND_COLOR					; Color the canyon
+	sta		COLUPF									; Send to TIA
+	
+	lda		#CANYON_GROUND
+	sta		PF0										; PF the canyon ground
+	sta		PF1										; PF the canyon ground
+	sta		PF2										; PF the canyon ground
+.ground	
+	inc		lineCount
+	dec		groundCount								; Decrement groundcount
+	sta		WSYNC									; Draw line
+	bne		.ground									; Loop back up 
+;------------------------------------------------
+; Overscan
+;------------------------------------------------
+	lda		#%01000010
+	sta		VBLANK
+    lda		#36
+    sta		TIM64T
+
+	lda 	#0										; Turn off the pf in overscan
+	sta		PF0
+	sta		PF1
+	sta		PF2
+	sta		GRP0
+	sta		ENAM0
+	;***** Overscan Code goes here
+
+
+	;------------------------------------------------
+	; Player Collision Detection
+	;------------------------------------------------
+	;lda		BALL_DISABLE_MASK						; Disable ball
+	sta		ENABL									; Send disable to TIA
+	;***** Playfield collision detection
+	lda		#%11000000								; Loading the mask to check if p0 is colliding with the playfield
+	bit		CXP0FB									; Comparing against the collision detection register
+	beq		.noP0CollisionWithPlayField				; If they are equal, allow movement
+
+	lda		#1										; Since there was a collision, set the collision flag
+	sta		isP0PFCollision							; Setting the collision flag
+
+	lda		#0
+	sta 	p0CanMove								; Setting the can't move flag to help turn off input in a certain direction
+
+	jmp		.doneWithPlayfieldCollisionDetection	
+
+.checkBallCollision
+	lda		#%01000000								; Loading the mask to check if p0 is colliding with the playfield
+	bit		CXP0FB									; Comparing against the collision detection register
+	beq		.noP0CollisionWithPlayField				; If they are equal, allow movement
+	lda		#1
+	sta		ballFlag
+	jmp		.doneWithPlayfieldCollisionDetection
+.noP0CollisionWithPlayField
+	lda		#0										; Since there was no collision, clear the collision flag
+	sta		isP0PFCollision
+	sta		ballFlag
+.doneWithPlayfieldCollisionDetection
+	
+	lda		#%01000000
+	bit		CXM0P
+	beq		.noMissileCollision
+	
+	ldy		liveFlag
+	cmp		#1
+	beq		.noSkip
+	
+	ldy		alt_count | #%00000010
+	beq		.skipLiveDec
+	
+.noSkip
+	lda		#$41 				;	RED
+	sta		COLUBK
+;	lda		#156
+	sta		yPos
+	dec		lives
+
+	ldy		#1
+	sty		liveFlag
+	sta		RESP0	
+	jmp		.waitForOverscan
+	
+.skipLiveDec
+	;sleep	2
+	;ldy		#0
+	;sty		liveFlag
+.endCollision
+	jmp		.waitForOverscan
+
+	
+.noMissileCollision
+	lda		#BACKGROUND_COLOR
+	sta		COLUBK
+	
+
+.waitForOverscan
+	lda     INTIM
+	bne     .waitForOverscan
+	lda		lives
+	bne		.endOverScan
+	lda		#GO_LENGTH
+	sta		songCount
+	lda		#7
+	sta		AUDC0
+
+.endOverScan
+	jmp		MainLoop
+
+
+
+DrawScreen2
+	ldx		#192+1		; Kernel goes here
+.scanline
+	dex
+	sta		WSYNC
+	bne		.scanline
+
+;------------------------------------------------
+; Overscan
+;------------------------------------------------
+	lda		#%01000010
+	sta		VBLANK
+    lda		#36
+    sta		TIM64T
+
+	;***** Overscan Code goes here
+
+.waitForOverscan2
+	lda     INTIM
+	bne     .waitForOverscan2
+
+	jmp		MainLoop
+
+;------------------------------------------------
+; ROM Tables
+;------------------------------------------------
+	;***** ROM tables go here
+	;***** Score Font
+	ORG	$FA00
+.zero_left
+	.byte	%11100000
+	.byte	%10100000
+	.byte	%10100000
+	.byte	%10100000
+	.byte	%11100000
+
+.one_left
+	.byte	%01000000
+	.byte	%11000000
+	.byte	%01000000
+	.byte	%01000000
+	.byte	%11100000
+
+.two_left
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.three_left
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+
+.four_left
+	.byte	%10100000
+	.byte	%10100000
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%00100000
+
+.five_left
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.six_left
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.seven_left
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.eight_left
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.nine_left
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.zero_right
+	.byte	%00001110
+	.byte	%00001010
+	.byte	%00001010
+	.byte	%00001010
+	.byte	%00001110
+
+.one_right
+	.byte	%00000100
+	.byte	%00001100
+	.byte	%00000100
+	.byte	%00000100
+	.byte	%00001110
+
+.two_right
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.three_right
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+
+.four_right
+	.byte	%10100000
+	.byte	%10100000
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%00100000
+
+.five_right
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.six_right
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.seven_right
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.eight_right
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+.nine_right
+	.byte	%11100000
+	.byte	%00100000
+	.byte	%11100000
+	.byte	%10000000
+	.byte	%11100000
+
+
+;------------------------------------------------
+; Player Sprite
+;------------------------------------------------
+.j0SpriteArmsUp
+	.byte 	%00000000
+	.byte 	%00000000
+	.byte 	%11111110
+	.byte 	%10111010
+	.byte	%10111010
+	.byte 	%01111100
+	.byte 	%00111000
+	.byte 	%00000000
+	
+.j0SpriteArmsDown
+	.byte 	%10000010
+	.byte 	%10000010
+	.byte 	%11111110
+	.byte 	%00111000
+	.byte 	%00111000
+	.byte 	%01111100
+	.byte 	%00111000
+	.byte 	%00000000
+
+.j0SpriteColors
+	.byte 	#$FE 									;Skin Color
+	.byte 	#$FE 									;Skin Color
+	.byte 	#$C1 									;Shirt Color
+	.byte	#$FE 									;Skin Color
+	.byte 	#$FE									;Skin Color
+	.byte 	#$00 									;Hat Color
+	.byte 	#$00 									;Hat Color
+	.byte	#$00
+
+.b0Animation2
+	.byte 	%00111000
+	.byte 	%00111000
+	.byte 	%00111000
+	.byte 	%00111000
+	.byte 	%00111000
+	.byte 	%00111000
+	.byte 	%00111000
+	.byte 	%00111000
+
+.b0Animation1
+	.byte	%01001100	; Line 8 in comments above
+	.byte	%01111000	; Line 7 in comments above
+	.byte	%00111000	; Line 6 in comments above
+	.byte	%00111000	; Line 5 in comments above
+	.byte	%01111100	; Line 4 in comments above
+	.byte	%01111000	; Line 3 in comments above
+	.byte	%00111000	; Line 2 in comments above
+	.byte	%00111000	; Line 1 in comments above
+
+
+.b0Sprite
+	.byte	%10000110	; Line 8 in comments above
+	.byte	%11101100	; Line 7 in comments above
+	.byte	%00111000	; Line 6 in comments above
+	.byte	%00111000	; Line 5 in comments above
+	.byte	%10111110	; Line 4 in comments above
+	.byte	%11111010	; Line 3 in comments above
+	.byte	%00111000	; Line 2 in comments above
+	.byte	%00111000	; Line 1 in comments above
+
+.b0SpriteColors
+	.byte	#$80	; Pants color
+	.byte	#$80	; Pants color
+	.byte	#$80	; Shirt color
+	.byte	#$32	; Shirt color
+	.byte	#$80	; Shirt color
+	.byte	#$80	; Skin color
+	.byte	#$2E	; Hat color
+	.byte	#$2E	; Hat color
+
+
+.p0Sprite
+	.byte	%00100010	; Line 8 in comments above
+	.byte	%00011100	; Line 7 in comments above
+	.byte	%10010000	; Line 6 in comments above
+	.byte	%01111110	; Line 5 in comments above
+	.byte	%00010010	; Line 4 in comments above
+	.byte	%00011100	; Line 3 in comments above
+	.byte	%01111100	; Line 2 in comments above
+	.byte	%00011100	; Line 1 in comments above
+
+.p0SpriteColors
+	.byte	#$1F	; Pants color
+	.byte	#$1F	; Pants color
+	.byte	#$80	; Shirt color
+	.byte	#$80	; Shirt color
+	.byte	#$80	; Shirt color
+	.byte	#$FB	; Skin color
+	.byte	#$40	; Hat color
+	.byte	#$40	; Hat color
+
+.p1Sprite
+	.byte	%10100001	; Line 8 in comments above
+	.byte	%10100001	; Line 7 in comments above
+	.byte	%01000101	; Line 6 in comments above
+	.byte	%01100111	; Line 5 in comments above
+	.byte	%00111100	; Line 4 in comments above
+	.byte	%00010000	; Line 3 in comments above
+	.byte	%00111000	; Line 2 in comments above
+	.byte	%00111000	; Line 1 in comments above
+
+.p1SpriteColors
+	.byte	#$F0	; Pants color
+	.byte	#$F0	; Pants color
+	.byte	#$C0	; Shirt color
+	.byte	#$C0	; Shirt color
+	.byte	#$C0	; Shirt color
+	.byte	#$FB	; Skin color
+	.byte	#$05	; Beard color
+	.byte	#$FB	; Skin color
+
+.fencePF0
+	;.byte	%00000101	;
+	;.byte	%00000101	;
+	.byte	%01010000	;
+	.byte	%11110000	;
+	.byte	%01010000	;
+	.byte	%11110000	;
+	.byte	%01010000	;
+	.byte	%00000000	;
+	.byte	%00000000	;
+	.byte	%00000000	; 
+	
+.fencePF1
+	.byte	%10000000	;
+	.byte	%10000000	;
+	.byte	%10000000	;
+	.byte	%10000000	;
+	.byte	%10000000	;
+	.byte	%00000000	;
+	.byte	%00000000	;
+	.byte	%00000000	;
+
+.houseDoorPF0
+	.byte	#%1000
+	.byte	#%1000	
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1010
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1000
+
+.houseDoorPF1
+	.byte	#%1000
+	.byte	#%1000	
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1000	
+	
+.houseWindowPF0
+	.byte	#%1000
+	.byte	#%1011	
+	.byte	#%1011
+	.byte	#%1011
+	.byte	#%1000
+	.byte	#%1000
+	.byte	#%1011
+	.byte	#%1011
+	.byte	#%1011
+	.byte	#%1000
+
+.houseWindowPF1
+	.byte	#%0100
+	.byte	#%0100	
+	.byte	#%0100
+	.byte	#%0100
+	.byte	#%0100
+	.byte	#%0100
+	.byte	#%0100
+	.byte	#%0100
+	.byte	#%0100
+	.byte	#%0100
+
+.song 
+	.byte 	NOTE_F
+	.byte 	NOTE_F
+	.byte 	NOTE_G
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_C
+	.byte 	NOTE_D4
+	.byte 	NOTE_G
+	.byte 	NOTE_G
+	.byte 	NOTE_REST
+	.byte 	NOTE_B
+	.byte 	NOTE_A
+	.byte 	NOTE_C
+	.byte 	NOTE_REST
+	.byte 	NOTE_B
+	.byte 	NOTE_REST
+	.byte 	NOTE_G
+	.byte 	NOTE_G
+ 	;second part
+	.byte 	NOTE_F
+	.byte 	NOTE_F
+	.byte 	NOTE_G
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_A
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_E
+	.byte 	NOTE_REST
+	.byte 	NOTE_G
+	.byte 	NOTE_E
+	.byte 	NOTE_A
+	.byte 	NOTE_REST
+	.byte 	NOTE_E
+	.byte 	NOTE_REST
+	.byte 	NOTE_E
+	.byte 	NOTE_E
+	;repeat
+ 	.byte 	NOTE_F
+	.byte 	NOTE_F
+	.byte 	NOTE_G
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_A
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_E 
+	.byte 	NOTE_REST
+	.byte 	NOTE_G
+	.byte 	NOTE_E
+	.byte 	NOTE_A
+	.byte 	NOTE_REST
+	.byte 	NOTE_E
+	.byte 	NOTE_REST
+	.byte 	NOTE_E
+	.byte 	NOTE_E
+ 	;length - 54
+
+.song2
+	.byte	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK;
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK;
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	#29;
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK;
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK ;
+	;Second part
+	.byte 	NOTE_REST
+	.byte 	#29
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK
+	.byte 	NOTE_REST
+	.byte 	#29
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK
+	.byte 	#29
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	#29
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK
+	.byte 	NOTE_REST
+	.byte 	#29
+	;repeat
+	.byte 	NOTE_REST
+	.byte 	#29
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK
+	.byte 	NOTE_REST
+	.byte 	#29
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK
+	.byte 	#29
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	NOTE_REST
+	.byte 	#29
+	.byte 	NOTE_REST
+	.byte 	NOTE_KICK
+	.byte 	NOTE_REST
+	.byte 	#29
+	;length - 54
+
+.gameOverSong
+	.byte	NOTE_G
+	.byte 	NOTE_G
+	.byte	NOTE_G
+	.byte 	NOTE_A
+	.byte	NOTE_A
+	.byte 	NOTE_A
+	.byte 	NOTE_A
+	.byte	NOTE_A
+	.byte 	NOTE_A
+	.byte	NOTE_C
+	.byte	NOTE_C
+	.byte	NOTE_F
+	.byte	NOTE_C
+	.byte	NOTE_F
+	.byte	NOTE_F
+	.byte	NOTE_C
+	.byte 	NOTE_C
+	.byte 	NOTE_D4
+	.byte	NOTE_D4
+	.byte 	NOTE_D4
+	.byte 	NOTE_D4
+	;length 21
+
+;---------------------------------------------------------------------------------------------------;
+;	TRUE FANS WITH COPIES OF THE SOURCE CODE ONLY:													;
+;---------------------------------------------------------------------------------------------------;
+;	Bo Schmoe's real name was once Bo Brinkman. However due to his unbelievable god given talent,	;
+;	Bo asked his parents to allow him to change his name to Schmoe to escape the publicity that is	;
+;	the celebrity programmer lifestyle. Since changing his name Bo has been able to live in,		;
+;	obscurity. However, falling into the Grand Canyon threatens his way of life by attracting news	;
+;	media from all over the nation. Bo fears that this renewed publicity will prompt the media to 	;
+;	find out who Bo Schmoe really is, a skeleton he had long ago buried deep in his closet. 		;
+;																									;
+;	Help Bo and his step-brother Joe dig themselves out of the canyon by throwing rocks down to		;
+;	little Bo.																						;
+;---------------------------------------------------------------------------------------------------;
+;note_array1
+;	.byte	NOTE_A
+;	.byte	NOTE_G
+;	.byte	NOTE_C
+;	.byte	NOTE_E
+
+;note_array2
+;	.byte	NOTE_C
+;	.byte	NOTE_G
+;	.byte	NOTE_A
+;	.byte	NOTE_C
+
+;ga_array0
+;	.byte	PLAYER_0
+;	.byte	BLACK
+;	.byte	PLAYER_0
+;	.byte	BLACK
+
+;ga_array1
+;	.byte	PLAYER_1
+;	.byte	BLACK
+;	.byte	PLAYER_1
+;	.byte	BLACK
+
+;------------------------------------------------
+; Interrupt Vectors
+;------------------------------------------------
+	echo [*-$F000]d, " ROM bytes used"
+	ORG    $FFFA
+	.word  Start         ; NMI
+	.word  Start         ; RESET
+	.word  Start         ; IRQ
+    
+	END
