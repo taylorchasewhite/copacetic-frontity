@@ -9,7 +9,6 @@ import {
   FaProjectDiagram,
   FaTools,
   FaUser,
-  FaLandmark,
 } from "react-icons/fa";
 
 export interface MenuItem {
@@ -34,7 +33,6 @@ export const siteConfig = {
     { label: "Home", href: "/", icon: FaHome },
     { label: "Blog", href: "/category/blog", icon: FaPenNib },
     { label: "Philosophy", href: "/category/philosophy", icon: FaBookOpen },
-    { label: "OurGov", href: "/ourgov", icon: FaLandmark },
     { label: "Projects", href: "/projects", icon: FaProjectDiagram },
     { label: "Workshop", href: "/workshop", icon: FaTools },
     { label: "About", href: "/about", icon: FaUser },

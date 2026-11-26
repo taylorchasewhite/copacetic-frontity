@@ -31,6 +31,13 @@ All WP calls live in [`src/lib/wp.ts`](./src/lib/wp.ts). Responses are
 cached by Next.js with a default `revalidate` of 1 hour. Override per
 route by exporting `revalidate` from the route file.
 
+## Navigation
+
+The Vercel site's navigation is defined in `src/lib/site.ts`, independently
+of the WordPress menus. Its shared menu feeds the desktop sidebar, mobile
+drawer, vintage footer, and sitemap page. OurGov is omitted from navigation;
+its `/ourgov` page and existing feed filtering remain available unchanged.
+
 ## Deployment
 
 This project deploys to Vercel as-is. Set `WP_API_URL` and
