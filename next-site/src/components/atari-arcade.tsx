@@ -1,53 +1,28 @@
-"use client";
-
-import { useState } from "react";
-
-const games = [
-  { id: "super-step-bros", title: "Super Step Bros." },
-  { id: "skateboard-steve", title: "The Adventures of Grumpy Gramps & Skateboard Steve" },
-  { id: "simon-says", title: "Simon Says" },
-];
-
 export function AtariArcade() {
-  const [playing, setPlaying] = useState<(typeof games)[number] | null>(null);
-
   return (
-    <section aria-labelledby="arcade-heading" className="mb-8 rounded-md border border-primary-200 p-4">
-      <h2 id="arcade-heading" className="font-heading text-2xl font-bold">Play the original cartridges</h2>
+    <details className="mb-8 rounded-md border border-primary-200 p-4">
+      <summary className="cursor-pointer font-heading text-2xl font-bold">Play the original Atari cartridges</summary>
       <p className="my-2">Choose a game to play right here. No download required.</p>
-      <div className="flex flex-wrap gap-2">
-        {games.map((game) => (
-          <a
-            key={game.id}
-            href={`/atari/play.html?game=${game.id}`}
-            aria-current={playing === game ? "true" : undefined}
-            className="rounded border border-primary-300 px-3 py-2 font-semibold underline hover:bg-primary-50 aria-[current=true]:bg-primary-100"
-            onClick={(event) => {
-              if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-              event.preventDefault();
-              setPlaying(game);
-            }}
-          >
-            {game.title}
-          </a>
-        ))}
-      </div>
-      {playing && (
-        <>
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <strong aria-live="polite">Playing: {playing.title}</strong>
-            <button type="button" className="shrink-0 underline" onClick={() => setPlaying(null)}>Stop game</button>
-          </div>
-          <iframe
-            key={playing.id}
-            src={`/atari/play.html?game=${playing.id}`}
-            title={`${playing.title} Atari 2600 emulator`}
-            allow="autoplay; fullscreen; gamepad"
-            allowFullScreen
-            className="mt-2 h-[min(640px,calc(76vw+170px))] w-full rounded bg-black"
-          />
-        </>
-      )}
-    </section>
+      <form action="/atari/play.html" method="get" target="atari-homebrew-screen" className="mb-3 flex flex-wrap items-center gap-2">
+        <label className="max-w-full">
+          Cartridge{" "}
+          <select name="game" className="max-w-full rounded border border-primary-300 p-1">
+            <option value="super-step-bros">Super Step Bros.</option>
+            <option value="skateboard-steve">The Adventures of Grumpy Gramps &amp; Skateboard Steve</option>
+            <option value="simon-says">Simon Says</option>
+          </select>
+        </label>
+        <button type="submit" className="rounded bg-primary-800 px-3 py-2 font-semibold text-white">Play game</button>
+        <a href="about:blank" target="atari-homebrew-screen" className="underline">Stop game</a>
+      </form>
+      <iframe
+        name="atari-homebrew-screen"
+        title="Atari 2600 emulator"
+        srcDoc="<p>Choose a cartridge and press Play game.</p>"
+        allow="autoplay; fullscreen; gamepad"
+        allowFullScreen
+        className="h-[min(680px,calc(76vw+170px))] w-full rounded"
+      />
+    </details>
   );
 }

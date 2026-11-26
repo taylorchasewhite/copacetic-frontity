@@ -53,6 +53,13 @@ For a standalone player or a WordPress Custom HTML block, link or embed
 `https://taylorchasewhite.com/atari/play.html?game=super-step-bros`.
 The other cartridge IDs are `skateboard-steve` and `simon-says`.
 
+To run the player directly on the legacy WordPress site, including when the
+Next.js site is unavailable, build a plugin ZIP from the repository root:
+`.\wordpress\package.ps1 -OutputPath .\atari-homebrew.zip`.
+In WordPress use **Plugins > Add New > Upload Plugin**, then activate it.
+It adds a cartridge picker only to the homebrew post, without changing its
+stored content or REST output. Deactivate the plugin to remove it.
+
 ## Deployment
 
 This project deploys to Vercel as-is. Set `WP_API_URL` and
