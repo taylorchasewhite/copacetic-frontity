@@ -4,7 +4,7 @@
 ; Right stick: walk Gramps' deck; down or fire throws an object. Leave the
 ; controller idle for three seconds and Gramps takes over again.
 ; Stay upright: +1 per 50 frames, +2 per clean dodge, three hearts.
-; Four clean dodges open the next backyard; the three-yard route loops.
+; Six clean dodges earn a trick break; throws tighten with active riding time.
 ; At WIPEOUT use left fire to ride again; console Reset starts a new run.
 
         processor 6502
@@ -16,6 +16,8 @@ MIN_X   = 6
 MAX_X   = 138
 NO_POT  = $ff
 ROWS    = 60
+YARD_GOAL = 6
+CHEER_FRAMES = 128
 
         SEG.U RAM
         ORG $80
@@ -60,6 +62,8 @@ nearPosts   ds 1
 farPosts    ds 1
 objectShape ds 1
 objectInk   ds 1
+cheer       ds 1        ; 1..128: one bar of melody and its answering phrase
+rideTime    ds 1        ; 50-frame units of active play; saturates at 40
 
         SEG CODE
         ORG $f000
@@ -235,7 +239,13 @@ OldLine
         sta PF1
         lda #$44
         sta PF2
+        lda cheer
+        beq RiderAtHome
+        lda #64
+        bne RiderReady
+RiderAtHome
         lda steveX
+RiderReady
         sta WSYNC
         sec
 RiderCoarse
@@ -256,10 +266,17 @@ RiderCoarse
         sta PF2
         sta CXCLR       ; porch decorations do not participate in yard collisions
         sta COLUBK
-        sta NUSIZ1      ; lower court reuses both players for Steve and the pot
+        lda #5          ; double-width hazards; the collision mask is the art
+        sta NUSIZ1
         lda steveFace
         sta REFP0
+        lda cheer
+        beq ObjectInPlay
+        lda #64
+        bne ObjectReady
+ObjectInPlay
         lda potX
+ObjectReady
         sta WSYNC       ; 57: reposition on the black underside of the balcony
         sec
 PotCoarse
@@ -278,10 +295,14 @@ PotCoarse
         sta WSYNC       ; 59
         ldx #0
         lda lives
-        bne CourtInit
+        bne ShowYard
         jmp EndCard
+ShowYard
+        lda cheer
+        beq CourtInit
+        jmp TrickCard
 CourtInit
-        lda #$9a
+        lda #$9e
         sta COLUBK
         ldy pots
         lda ItemShape,y
@@ -494,6 +515,10 @@ TickWait
 
 NewRound
         lda #0
+        sta cheer
+        sta rideTime
+        sta AUDV0
+        sta AUDV1
         sta yard
         sta yardDodges
         ldx #fireLock-lives
@@ -533,6 +558,16 @@ Update
         jmp NewRound
 NoReset
         inc clock
+        lda cheer
+        beq NotCheering
+        inc cheer
+        lda cheer
+        cmp #CHEER_FRAMES+1
+        bne StillCheering
+        jmp NextYard
+StillCheering
+        jmp PlayFanfare
+NotCheering
         lda lives
         bne Riding
         bit INPT4
@@ -578,6 +613,11 @@ NoHit
         bcc MoveSkater
         lda #0
         sta ticks
+        lda rideTime
+        cmp #40
+        bcs SurvivalPoint
+        inc rideTime
+SurvivalPoint
         lda #1
         jsr Award
 MoveSkater
@@ -702,8 +742,6 @@ Tracked
         jmp Audio
 Launch
         lda grampsX
-        clc
-        adc #4
         sta potX
         lda #0
         sta potY
@@ -755,31 +793,32 @@ Cleared
         eor #$1d
 NextSeed
         sta seed
-        and #$1f
-        adc #20
+        lda rideTime
+        lsr
+        lsr
+        lsr
+        tax
+        lda seed
+        and #7
+        clc
+        adc RestFrames,x
         sta cooldown
         inc dodges
+        lda #2
+        jsr Award
         inc yardDodges
         lda yardDodges
-        cmp #4
+        cmp #YARD_GOAL
         bne KeepYard
         lda #0
-        sta yardDodges
-        inc yard
-        lda yard
-        cmp #3
-        bcc NextYard
-        lda #0
-        sta yard
-NextYard
-        jsr SelectYard
+        sta soundTime
+        inc cheer
+        jmp PlayFanfare
 KeepYard
         lda #1
         sta soundKind
         lda #9
         sta soundTime
-        lda #2
-        jsr Award
 Audio
         lda soundTime
         beq Quiet
@@ -949,13 +988,13 @@ Roll    .byte $00,$38,$3e,$18,$1c,$18,$3a,$5c,$38,$28,$24,$46,$43,$ff,$42
 Push    .byte $00,$1c,$1f,$0c,$0e,$0c,$3c,$4e,$18,$1c,$34,$62,$22,$ff,$42
 Outline .byte $00,$18,$22,$10,$04,$08,$22,$44,$28,$20,$04,$42,$41,$81,$42
 RiderInk
-        .byte $00,$44,$46,$1c,$2e,$2c,$aa,$ae,$ac,$8a,$88,$88,$0e,$48,$0a
+        .byte $00,$02,$82,$20,$26,$24,$80,$82,$84,$02,$04,$02,$00,$42,$00
 Old     .byte $30,$78,$5c,$7e,$34,$38,$7c,$56,$75,$35,$35,$25,$25,$67
 Stride  .byte $30,$78,$5c,$7e,$34,$38,$7c,$56,$75,$35,$35,$29,$49,$cf
 Lift    .byte $30,$78,$5d,$7f,$35,$3e,$7c,$58,$70,$30,$34,$24,$24,$66
-OldInk  .byte $08,$0e,$1c,$08,$0e,$0a,$c4,$c6,$c4,$32,$32,$34,$34,$00
-Siding   .byte $28,$1c,$1a,$1a,$18,$1c,$1a,$1a,$18,$1c,$1a,$1a,$18,$1c
-WindowInk .byte $24,$24,$a4,$96,$96,$96,$24,$96,$96,$96,$a4,$24,$24,$24
+OldInk  .byte $02,$08,$02,$24,$02,$06,$50,$52,$50,$02,$22,$22,$20,$00
+Siding   .byte $0a,$1e,$0e,$0e,$0c,$1e,$0e,$0e,$0c,$1e,$0e,$0e,$0c,$1e
+WindowInk .byte $28,$28,$aa,$9c,$9c,$9c,$28,$9c,$9c,$9c,$aa,$28,$28,$28
 Shutters .byte $00,$1f,$30,$36,$36,$36,$3f,$36,$36,$36,$30,$3f,$00,$00
 Panes    .byte $00,$03,$06,$06,$06,$06,$07,$06,$06,$06,$06,$07,$00,$00
 Basket   .byte $18,$18,$24,$24,$42,$42,$5a,$bd,$ff,$7e,$3c,$18,$00,$00
@@ -964,18 +1003,22 @@ BasketInk .byte $24,$24,$24,$24,$24,$24,$d4,$c4,$c6,$36,$34,$22,$00,$00
 ItemShape .byte $00,$0c,$18,$76,$ff,$ff,$7e,$34
           .byte $00,$44,$2a,$1c,$ff,$7e,$3c,$38
           .byte $00,$3c,$7e,$ff,$ff,$ff,$7e,$3c
-ItemInk   .byte $00,$24,$c4,$42,$48,$46,$44,$42
-          .byte $00,$c2,$b6,$c4,$2e,$36,$34,$22
-          .byte $00,$d6,$de,$1e,$1a,$de,$dc,$d4
+ItemInk   .byte $00,$00,$c0,$40,$42,$44,$42,$00
+          .byte $00,$c0,$c2,$c0,$00,$32,$34,$20
+          .byte $00,$02,$12,$16,$02,$18,$12,$02
 ItemStart .byte 1,9,17
 MapOffsets .byte <YardMap,<(YardMap+ROWS),<(YardMap+2*ROWS)
 YardTicks  .byte $80,$a0,$a8
-DodgeTicks .byte 0,$80,$a0,$a8
+DodgeTicks .byte 0,$80,$c0,$e0,$f0,$f8,$fc
+RestFrames .byte 46,36,26,18,11,6
 Times5   .byte 0,5,10,15,20,25,30,35,40,45
 Reverse3 .byte 0,4,2,6,1,5,3,7
 Tone     .byte 4,12,8
 Volume   .byte 3,4,7
 Pitch    .byte 8,4,7
+RiderRow
+        ds 46,0
+        .byte 1,2,3,4,5,6,7,8,9,10,11,12,13,14
 
         ALIGN 256
 Font
@@ -984,16 +1027,12 @@ Font
 Heart0  .byte $00,$00,$00,$00,$00,$40,$e0,$e0,$c0,$80,$40,$e0,$e0,$c0,$80,$40,$e0,$e0,$c0,$80
 Heart1  .byte $00,$00,$00,$00,$00,$80,$c0,$c0,$80,$00,$8a,$df,$df,$8e,$04,$8a,$df,$df,$8e,$04
 Heart2  .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$14,$3e,$3e,$1c,$08
-Sign0   .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-Sign1   .byte $45,$44,$54,$54,$29,$00,$00,$00,$00,$00
-Sign2   .byte $9b,$a9,$99,$89,$8b,$77,$21,$23,$21,$71
-Sign3   .byte $30,$80,$90,$80,$30,$30,$50,$30,$50,$50
-Sign4   .byte $95,$54,$54,$54,$9c,$e0,$80,$c0,$80,$e0
-Sign5   .byte $03,$01,$01,$01,$01,$00,$00,$00,$00,$00
-
-RiderRow
-        ds 46,0
-        .byte 1,2,3,4,5,6,7,8,9,10,11,12,13,14
+Sign0   .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+Sign1   .byte $45,$44,$54,$54,$29,$00,$00,$00,$00,$00,$04,$06,$05,$04,$04
+Sign2   .byte $9b,$a9,$99,$89,$8b,$77,$21,$23,$21,$71,$3a,$92,$92,$93,$3a
+Sign3   .byte $30,$80,$90,$80,$30,$30,$50,$30,$50,$50,$70,$00,$00,$00,$70
+Sign4   .byte $95,$54,$54,$54,$9c,$e0,$80,$c0,$80,$e0,$f4,$84,$e4,$80,$f4
+Sign5   .byte $03,$01,$01,$01,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 
 ; Transpose the same artwork into page-local columns for the timed kernel.
 ; Edge/center bits are written in screen order, then reversed for PF0/PF2.
@@ -1003,10 +1042,16 @@ RiderRow
 BANDNO  SET BANDNO+1
         ENDIF
         IF COLUMN = 1
-        .byte {2}
+; Reserve the dark half of the NTSC palette for characters and hazards.
+; Open sky uses the lightest blue; landscaping keeps its original hue.
+        IF ({2} & $f0) = $90
+        .byte $9e
+        ELSE
+        .byte ({2} & $f0) | (8 + (({2} & $0c) >> 1))
+        ENDIF
         ENDIF
         IF COLUMN = 2
-        .byte {3}
+        .byte ({3} & $f0) | (6 + (({3} & $0c) >> 1))
         ENDIF
         IF (COLUMN = 3) || (COLUMN = 5)
 VALUE   SET {4}
@@ -1148,6 +1193,154 @@ YardCenter
 COLUMN  SET 6
 YardRight
         DrawYards
+
+; Hold the cleared yard and freeze collisions, score and both controllers
+; until the last note. The post-hit recovery delay is independent of tempo.
+NextYard
+        lda #0
+        sta cheer
+        sta yardDodges
+        sta AUDV0
+        sta AUDV1
+        inc yard
+        lda yard
+        cmp #3
+        bcc YardSelected
+        lda #0
+        sta yard
+YardSelected
+        jmp SelectYard
+
+; Original two-voice victory tag. Both dividers use the NTSC master clock;
+; the divide-by-three bass sits below the bright square-wave lead.
+PlayFanfare
+        lda cheer
+        sec
+        sbc #1
+        tax
+        and #7
+        tay
+        txa
+        lsr
+        lsr
+        lsr
+        tax
+        lda #4
+        sta AUDC0
+        lda #12
+        sta AUDC1
+        lda Bass,x
+        sta AUDF1
+        lda Pluck,y
+        lsr
+        sta AUDV1
+        lda Melody,x
+        bmi LeadRest
+        sta AUDF0
+        lda Pluck,y
+        sta AUDV0
+        rts
+LeadRest
+        lda #0
+        sta AUDV0
+        rts
+Melody  .byte 29,23,19,$ff,19,17,19,23,26,22,17,19,23,26,29,29
+Bass    .byte 19,19,12,12,14,14,19,19,14,14,12,12,19,12,19,19
+Pluck   .byte 5,5,4,4,4,3,2,0
+
+; 120 yard scanlines, as in the riding kernel. The rider and flipping deck
+; are separate TIA players: the board stays below Steve at the peak.
+TrickCard
+        lda #0
+        sta CTRLPF
+        sta PF0
+        sta PF1
+        sta PF2
+        lda #$be
+        sta COLUBK
+        lda #$82
+        sta COLUPF
+        sta WSYNC       ; 60
+        lda cheer
+        sec
+        sbc #1
+        lsr
+        lsr
+        lsr
+        and #7
+        tax
+        lda HopTop,x
+        sta digitB
+        lda FlipPose,x
+        sta digitC
+        ldx #8
+        jsr Band
+        ldy #10
+        jsr Banner      ; NICE!
+        lda #1
+        sta CTRLPF
+        lda #7
+        sta NUSIZ0
+        sta NUSIZ1
+        lda #0
+        sta REFP0
+        lda #$32
+        sta COLUP1
+        lda #$26
+        sta COLUPF
+        ldx #0
+TrickLine
+        sta WSYNC
+        txa
+        and #15
+        tay
+        lda Sparks,y
+        sta PF1
+        txa
+        sec
+        sbc digitB
+        cmp #15
+        bcs AboveRider
+        tay
+        lda ArmsUp,y
+        sta GRP0
+        lda RiderInk,y
+        sta COLUP0
+        jmp TrickBoard
+AboveRider
+        lda #0
+        sta GRP0
+TrickBoard
+        sta WSYNC
+        txa
+        sec
+        sbc #29
+        cmp #4
+        bcs NoBoard
+        clc
+        adc digitC
+        tay
+        lda Deck,y
+        jmp SetBoard
+NoBoard
+        lda #0
+SetBoard
+        sta GRP1
+        inx
+        cpx #44
+        bne TrickLine
+        sta WSYNC
+        lda #0
+        sta GRP0
+        sta GRP1
+        sta PF1
+        sta WSYNC
+        jmp Road
+HopTop   .byte 15,11,7,5,5,7,11,15
+FlipPose .byte 0,4,8,12,12,8,4,0
+ArmsUp   .byte $18,$3c,$3e,$1c,$14,$1c,$99,$db,$7e,$3c,$18,$24,$42,$63,$00
+Deck     .byte $00,$ff,$7e,$42,$03,$1e,$78,$c0,$00,$18,$18,$00,$c0,$78,$1e,$03
+Sparks   .byte 0,0,$08,$08,$2a,$1c,$7f,$1c,$2a,$08,$08,0,0,0,0,0
 
         .byte "GRAMPS' BACKYARD | TAYLOR WHITE / BURT HAWORTH"
         IF * > $fffa

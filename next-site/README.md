@@ -76,14 +76,23 @@ retries that canyon; fire after HOME or Game Reset starts the campaign over.
 
 **Skateboard Steve: Gramps' Backyard** takes place in Gramps' suburban
 backyard. Steve skates below the deck while Gramps tries to chase him out.
-Steer with Left/Right and hold Space to push faster. Four clean dodges move
+Steer with Left/Right and hold Space to push faster. Six clean dodges move
 Steve from the **Picket-Fence Yard** (apples), to the **Greenhouse Garden**
 (flowerpots), to the **Poolside Patio** (tennis balls), then back to the
-first yard. Hearts and score carry across settings. The marks under the
-score show the yard; the marks under the hearts count dodges in that yard.
+first yard. Gramps' rest between throws shortens about every seven seconds
+of active riding, up to a cap. After each yard, play pauses for Steve's
+kickflip and a two-voice Atari fanfare. The break doesn't cost health or
+advance the difficulty clock. Hearts and score carry across settings. The
+marks under the score show the yard; the bar under the hearts counts dodges.
 A partner can steer Gramps with F/H and throw with G or A; after three idle
 seconds the computer takes over. After three hits, P1 fire starts a new run;
 Game Reset starts over at any time.
+
+For a gameplay regression check with Edge and `playwright-core` available
+to Node, serve `public` on localhost port 8000, then run
+`node content/atari/revamped/tests/backyard.cjs` from `next-site`. It plays
+two full circuits using joystick inputs. An optional argument selects a
+different standalone player URL.
 
 **Simon Says: Echo** keeps the original right, left, down, up opening.
 The four arrow-shaped pads flash and sound a note; release the stick between

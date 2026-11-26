@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Atari Homebrew Player
  * Description: Play the original and revamped cartridges on the Atari 2600 homebrew article.
- * Version: 2.1.0
+ * Version: 2.2.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -24,7 +24,7 @@ add_filter( 'the_content', static function ( $content ) {
 	return '<details open class="atari-arcade">
 		<summary><span>Homebrew arcade</span>Play the Atari cartridges</summary>
 		<form method="get" action="' . $player . '" target="atari-homebrew-screen">
-			<input type="hidden" name="v" value="2.1.0">
+			<input type="hidden" name="v" value="2.2.0">
 			<label>Cartridge <select name="game">
 				<optgroup label="College originals">
 					<option value="super-step-bros">Super Step Bros.</option>
